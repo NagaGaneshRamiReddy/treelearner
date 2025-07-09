@@ -1,0 +1,4833 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+   
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+   
+   
+</head>
+<body class="body">
+  <header class="header flex justify-between items-center p-4 bg-gradient-to-r from-black-500 via-blue-500 to-green-500 text-white fixed top-0 left-0 right-0 z-50">
+  
+    <h1 class="logo text-2xl font-bold flex items-center animate-logo">
+       <span class="text-orange-400">Mini </span>
+    <span class="text-green-500">Bazaar!</span>
+      <i class="fas fa-shopping-cart"></i>
+  </h1>
+  
+  
+  <div class="location ml-6 flex space-x-4" id="open-location-modal">
+    <i class="fas fa-map-marker-alt text-white text-xl"></i>
+    <span class="text-yellow-400 font-semibold">Speed Delivery within 8 mins</span>
+</div>
+<div class="location-modal hidden fixed top-20 left-1/2 transform -translate-x-1/2 bg-white p-6 rounded-lg shadow-lg z-50">
+    <h2 class="text-xl font-semibold mb-4">Change Location</h2>
+    <button class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600" id="detect-location">Detect My Location</button>
+    <span class="mx-4 text-gray-500">OR</span>
+    <input type="text" class="border border-gray-300 rounded px-4 py-2" placeholder="Search delivery location">
+    <button class="absolute top-2 right-2 text-gray-600 hover:text-gray-800" id="close-modal">&times;</button>
+</div>
+<div class="overlay hidden fixed inset-0 bg-black bg-opacity-50 z-40"></div>
+
+      <!-- Search Bar -->
+      <div class="search-bar relative ml-6">
+        <input 
+          type="text" 
+          class="search-input hidden transition-all duration-500 ease-in-out bg-white text-black px-4 py-2 rounded-md w-0 focus:w-72 focus:outline-none focus:ring focus:ring-green-300" 
+          placeholder="Search for fresh produce..." 
+        />
+        <i class="fas fa-search search-icon cursor-pointer text-green-300 text-lg hover:text-green-300" id="searchToggle"></i>
+      </div>
+  
+      <!-- User Cart Links -->
+      <div class="user-cart ml-6 flex items-center space-x-4">
+       
+        <a href="#" class="cart-link" id="cartIcon">
+          <i class="fas fa-shopping-cart"></i> Cart <span id="cartCount">(0)</span>
+        </a>
+      </div>
+    </div>
+    
+  </header>
+  <script>
+  // Get elements
+const locationTrigger = document.getElementById('open-location-modal');
+const modal = document.querySelector('.location-modal');
+const overlay = document.querySelector('.overlay');
+const closeModal = document.getElementById('close-modal');
+
+// Open Modal with Highlight and Animation
+locationTrigger.addEventListener('click', () => {
+    modal.classList.add('active');
+    overlay.classList.add('active');
+    locationTrigger.classList.add('highlight'); // Add highlight animation
+});
+
+// Close Modal
+closeModal.addEventListener('click', () => {
+    modal.classList.remove('active');
+    overlay.classList.remove('active');
+    locationTrigger.classList.remove('highlight'); // Remove highlight animation
+});
+
+// Close Modal when clicking outside
+overlay.addEventListener('click', () => {
+    modal.classList.remove('active');
+    overlay.classList.remove('active');
+    locationTrigger.classList.remove('highlight'); // Remove highlight animation
+});
+</script>
+<script>
+  // Search bar toggle
+  const searchToggle = document.getElementById("searchToggle");
+  const searchInput = document.querySelector(".search-input");
+
+  searchToggle.addEventListener("click", () => {
+      if (searchInput.classList.contains("hidden")) {
+          searchInput.classList.remove("hidden");
+          searchInput.focus();
+      } else {
+          searchInput.classList.add("hidden");
+      }
+  });
+</script>
+
+
+            
+  
+  
+<div id="cartSection">
+  <span id="closeCart">&times;</span>
+  <br><br>
+  <h2 class="h23">Your Cart</h2>
+  <div class="shipment-box">
+    <p class="delivery-speed"><i class="fas fa-clock"></i> Delivery in 8 minutes</p>
+    <p>Shipment of <span id="itemCount">0</span> item</p>
+  </div>
+  
+  
+  <div id="cartItems">
+      <!-- Cart items will dynamically populate here -->
+  </div>
+  
+  <div class="bill-details mb-3">
+    <!-- Items Total -->
+    <div class="d-flex justify-content-between">
+      
+      <i class="fas fa-calculator text-primary" aria-label="Total amount" style="color: rgb(203, 64, 64);"></i>
+  
+      <span>Items total</span>
+      <span id="itemsTotal" class="total-amount">₹0</span>
+    </div>
+    
+    <!-- Delivery Charge -->
+    <div class="d-flex justify-content-between">
+      <span>
+        <i class="fas fa-motorcycle text-muted" aria-label="Information about delivery charges" style="color: rgb(252, 145, 14);"></i>
+        Delivery charge
+      </span>
+      <span id="deliveryCharge" class="total-amount">₹0</span>
+    </div>
+  
+    <!-- Handling Charge -->
+    <div class="d-flex justify-content-between">
+      <span>
+        <i class="fas fa-shopping-bag text-muted" aria-label="Information about handling charges"  style="color: rgb(9, 101, 6);"></i>
+        Handling charge
+      </span>
+      
+      <span id="handlingCharge" class="total-amount">₹0</span>
+    </div>
+  
+    <hr>
+  
+    <!-- Grand Total -->
+    <div class="d-flex justify-content-between">
+      <span class="fw-bold">Grand total</span>
+      <span id="grandTotal" class="fw-bold total-amount">₹0</span>
+    </div>
+    <script>
+      // Function to handle the checkout action
+      function handleCheckout() {
+        // Open the payment page in a new tab
+        window.open('/payment', '_blank');
+      }
+    </script>
+  
+    <div>
+      <!-- Checkout Button -->
+      <button id="checkoutButton" onclick="handleCheckout()">
+        Proceed to Checkout
+      </button>
+    </div>
+  </div>
+  
+  <div class="cancellation-policy">
+    <h4>Cancellation Policy</h4>
+    <p>Orders cannot be cancelled once packed for delivery. In case of unexpected delays, a refund will be provided, if applicable.</p>
+  </div>
+  </div>
+  
+  
+</div>
+
+<div id="successMessage" role="alert">Item added to cart!</div>
+ 
+   <div class="nav-container">
+    <div class="arrow" id="prev-arrow">&#8249;</div>
+    <nav id="nav">
+        <a href="#fruits.html"><i class="fas fa-apple-alt"></i>Fruits</a>
+        <a href="#Vegetables"><i class="fas fa-carrot"></i>Vegetables</a>
+        <a href="#bakery"><i class="fas fa-bread-slice"></i>Bakery</a>
+        <a href="#Meat"><i class="fas fa-drumstick-bite"></i>Meat</a>
+        <a href="#seafood"><i class="fas fa-fish"></i>Seafood</a>
+        <a href="#dairy"><i class="fas fa-cheese"></i>Dairy</a>
+        <a href="#snacks"><i class="fas fa-cookie"></i>Snacks</a>
+        <a href="#beverages"><i class="fas fa-coffee"></i>Beverages</a>
+        <a href="#groceries"><i class="fas fa-shopping-cart"></i>Groceries</a>
+        <a href="#home-essentials"><i class="fas fa-home"></i>Home Essentials</a>
+        <a href="#apparel"><i class="fas fa-tshirt"></i>Apparel</a>
+        <a href="#baby-products"><i class="fas fa-baby"></i>Baby Products</a>
+        <a href="#pet-care"><i class="fas fa-paw"></i>Pet Care</a>
+        <a href="#health-wellness"><i class="fas fa-heartbeat"></i>Health & Wellness</a>
+        <a href="#gifts"><i class="fas fa-gift"></i>Gifts</a>
+        <a href="#stationery"><i class="fas fa-pen"></i>Stationery</a>
+        <a href="#electronics"><i class="fas fa-laptop"></i>Electronics</a>
+        <a href="#tools"><i class="fas fa-tools"></i>Tools</a>
+        <a href="#kitchenware"><i class="fas fa-blender"></i>Kitchenware</a>
+        <a href="#lighting"><i class="fas fa-lightbulb"></i>Lighting</a>
+    </nav>
+    <div class="arrow" id="next-arrow">&#8250;</div>
+  </div>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <script>
+
+  const nav = document.getElementById("nav");
+  const prevArrow = document.getElementById("prev-arrow");
+  const nextArrow = document.getElementById("next-arrow");
+  
+
+  const scrollAmount = 300; 
+  
+  
+  prevArrow.addEventListener("click", () => {
+    nav.scrollBy({
+      left: -scrollAmount,
+      behavior: "smooth", 
+    });
+  });
+  
+  nextArrow.addEventListener("click", () => {
+    nav.scrollBy({
+      left: scrollAmount,
+      behavior: "smooth", 
+    });
+  });
+  </script>
+  <div class="carousel-container w-full h-screen flex items-center justify-center">
+    <div class="carousel w-full h-full" id="carousel">
+      
+        <div class="carousel-item">
+            <div class="carousel-item-content flex flex-col md:flex-row">
+                <div class="md:w-1/2 flex flex-col justify-center px-5">
+                    <h1 class="text-4xl font-bold">Welcome to Speed Shop</h1>
+                    <p class="text-lg mt-3">Speed Delivery within 8 mins</p>
+                    <button class="mt-5 bg-gradient-to-r text-green-500 font-semibold py-3 px-6 rounded hover:bg-gray-200 transition ease-in-out duration-300">Explore Now</button>
+                </div>
+                <div class="md:w-1/2 flex justify-center items-center">
+                    <img 
+                        src="https://storage.googleapis.com/a1aa/image/zBkos0VyoSD6zzwmpVSKgDDDr7BY2hlP7ljhN6s7UqE.jpg" 
+                        alt="Home furnishing items including furniture, decor, and other products" 
+                        class="rounded-lg">
+                </div>
+            </div>
+        </div>
+
+        <div class="carousel-item">
+  <div class="carousel-item-content flex flex-col md:flex-row">
+    <div class="md:w-1/2 flex flex-col justify-center px-5">
+      <h1 class="text-4xl font-bold">
+        <span class="text-red-500">Welcome</span> to 
+        <span class="text-yellow-500">Speed</span>
+        <span class="text-green-500">Shop</span>
+      </h1>
+      <p class="text-lg mt-3 text-gray-800">Fast ordering and quick delivery at your fingertips.</p>
+      <button class="mt-5 bg-white text-green-500 font-semibold py-3 px-6 rounded hover:bg-gray-200 transition ease-in-out duration-300">
+        Start Shopping
+      </button>
+    </div>
+    
+      <img 
+        alt="SpeedShop delivery concept with groceries and fast service" 
+        class="rounded-lg w-full max-w-sm h-full shadow-lg fade-slide-in" 
+        height="300" 
+        src="https://storage.googleapis.com/a1aa/image/wFy8l_n0pWuthtebVBe_FQ-AAqgSkK5bjg3R047StJc.jpg" 
+        width="400"
+      />
+  
+  </div>
+</div>
+
+        <div class="carousel-item">
+          <div class="carousel-item-content flex flex-col md:flex-row">
+              <div class="md:w-1/2 flex flex-col justify-center px-5">
+                  <h1 class="text-4xl font-bold">Grocery Items</h1>
+                  <p class="text-lg mt-3">Fresh and quality groceries at your doorstep.</p>
+                  <button class="mt-5 bg-white text-green-500 font-semibold py-3 px-6 rounded hover:bg-gray-200 transition ease-in-out duration-300">Shop Groceries</button>
+              </div>
+              <div class="md:w-1/2 flex justify-center items-center">
+                <img alt="Groceries and fresh produce including fruits, vegetables, and other food items" class="rounded-lg w-full max-w-sm h-full shadow-lg fade-slide-in" height="300" src="https://www.healthifyme.com/blog/wp-content/uploads/2023/01/shutterstock_721417951-1.jpg" width="400"/>
+           
+                  
+              </div>
+          </div>
+      </div>
+
+        <div class="carousel-item">
+            <div class="carousel-item-content flex flex-col md:flex-row">
+                <div class="md:w-1/2 flex flex-col justify-center px-5">
+                    <h1 class="text-4xl font-bold">Shirts Shopping</h1>
+                    <p class="text-lg mt-3">Trendy shirts at amazing prices.</p>
+                    <button class="mt-5 bg-white text-green-500 font-semibold py-3 px-6 rounded hover:bg-gray-200 transition ease-in-out duration-300">Shop Shirts</button>
+                </div>
+                <div class="md:w-1/2 flex justify-center items-center">
+                    <img 
+                        src="https://static.vecteezy.com/system/resources/previews/027/807/254/non_2x/t-shirts-mockup-with-text-space-on-colrful-background-hd-ai-free-photo.jpg" 
+                        alt="T-shirts mockup with text space on colorful background" 
+                        class="rounded-lg">
+                </div>
+            </div>
+        </div>
+
+        <div class="carousel-item">
+            <div class="carousel-item-content flex flex-col md:flex-row">
+                <div class="md:w-1/2 flex flex-col justify-center px-5">
+                    <h1 class="text-4xl font-bold">Home Furnishing Items</h1>
+                    <p class="text-lg mt-3">Your favourite home furnishing shop is now online.</p>
+                    <button class="mt-5 bg-white text-green-500 font-semibold py-3 px-6 rounded hover:bg-gray-200 transition ease-in-out duration-300">Shop Now</button>
+                </div>
+                <div class="md:w-1/2 flex justify-center items-center">
+                    <img 
+                        src="https://rukminim2.flixcart.com/image/850/1000/ksyz8280/wallpaper/x/i/y/40-5-127-s17-all-decorative-design-original-imag6fa5xeja4wzn.jpeg?q=90&crop=false" 
+                        alt="Home furnishing items including furniture, decor, and other products" 
+                        class="rounded-lg">
+                </div>
+            </div>
+        </div>
+
+        <div class="carousel-item">
+            <div class="carousel-item-content flex flex-col md:flex-row">
+                <div class="md:w-1/2 flex flex-col justify-center px-5">
+                    <h1 class="text-4xl font-bold">Electric Items</h1>
+                    <p class="text-lg mt-3">Find the best quality electric items for your needs.</p>
+                    <button class="mt-5 bg-white text-green-500 font-semibold py-3 px-6 rounded hover:bg-gray-200 transition ease-in-out duration-300">Shop Electric Items</button>
+                </div>
+                <div class="md:w-1/2 flex justify-center items-center">
+                    <img 
+                        src="https://5.imimg.com/data5/SELLER/Default/2021/5/HD/NR/AF/42911730/electrical-items.jpg" 
+                        alt="Electric items and gadgets" 
+                        class="rounded-lg">
+                </div>
+            </div>
+        </div>
+        <div class="carousel-item">
+          <div class="carousel-item-content flex flex-col md:flex-row">
+           
+              <div class="md:w-1/2 flex flex-col justify-center px-5">
+                  <h1 class="text-4xl font-bold">Headsets & Earbuds</h1>
+                  <p class="text-lg mt-3">Discover premium headsets and earbuds designed for crystal-clear sound and ultimate comfort.</p>
+                  <button 
+                      class="mt-5 bg-white text-green-500 font-semibold py-3 px-6 rounded hover:bg-gray-200 transition ease-in-out duration-300">
+                      Shop Now
+                  </button>
+              </div>
+             
+              <div class="md:w-1/2 flex justify-center items-center">
+                  <img 
+                      src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCyE8dp4nssavl2-D1MXLJEDnFvsXMK6mvIQ&s" 
+                      alt="Headsets and Earbuds" 
+                      class="rounded-lg">
+              </div>
+          </div>
+      </div>
+      
+    </div>
+
+    <button class="nav-button left" onclick="prevSlide()">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    <button class="nav-button right" onclick="nextSlide()">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+</div>
+
+<script>
+    let currentSlide = 0;
+
+    function showSlide(index) {
+        const carousel = document.getElementById('carousel');
+        const totalSlides = carousel.children.length;
+        currentSlide = (index + totalSlides) % totalSlides;
+        carousel.style.transform = `translateX(${-currentSlide * 100}%)`;
+    }
+
+    function nextSlide() {
+        showSlide(currentSlide + 1);
+    }
+
+    function prevSlide() {
+        showSlide(currentSlide - 1);
+    }
+
+    setInterval(() => {
+        nextSlide();
+    }, 3000);
+</script>
+
+
+
+   <div class="category-container">
+     
+     <div class="category-card" id="category-1">
+       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSrBRYHq0tfRHBujRk4nbPJJN-kACrSUQ-gEQ&s" alt="Dairy, Bread & Eggs">
+       <h3>Dairy, Bread & Eggs</h3>
+     </div>
+     <div class="category-card" id="category-2">
+       
+       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsrn37Q9JXE_-Xt0wIbzuGi_QiKhcUErHtyA&s" alt="Fruits & Vegetables">
+       <h3>Fruits & Vegetables</h3>
+     </div>
+     <div class="category-card" id="category-3">
+       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQyLojZDr1cxO2fx0KjFuatQRwkjET2v8vYyQ&s" alt="Cold Drinks & Juices">
+       <h3>Cold Drinks & Juices</h3>
+     </div>
+     <div class="category-card" id="category-4">
+       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQP4efA7R5hzBGaa1IUFBudvKiegj8-A0UzkpCNPax6CYQoHh3mGo2fWlisjAUrkGLKJuc&usqp=CAU" alt="Snacks & Munchies">
+       <h3>Snacks & Munchies</h3>
+     </div>
+     <div class="category-card" id="category-5">
+       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSKmcB78lnmna8HTVF2wp_Vp-XcuOYLD9u44w&s" alt="Breakfast & Instant Food">
+       <h3>Breakfast & Instant Food</h3>
+     </div>
+     <div class="category-card" id="category-6">
+       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQcDqu7STRQS8KUXySbMflRPjFUd8BcWmlEkg&s" alt="Sweet Tooth">
+       <h3>Sweet Tooth</h3>
+     </div>
+     <div class="category-card" id="category-7">
+       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR5SjQrcHkZ_eUdb7nnk4bnNGDOUD_JEeQRdw&s" alt="Bakery & Biscuits">
+       <h3>Bakery & Biscuits</h3>
+     </div>
+     <div class="category-card" id="category-8">
+       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSOIKycYogMByq5dhedl2nyCO596BULGnqRaA&s" alt="Tea, Coffee & Health Drink">
+       <h3>Tea, Coffee & Health Drink</h3>
+     </div>
+     <div class="category-card" id="category-9">
+       
+       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSylpxu34c38J5lTgEFYHftZgWPL_R9uZDdqg&s" alt="Atta, Rice & Dal">
+       <h3>Atta, Rice & Dal</h3>
+     </div>
+     <div class="category-card" id="category-10">
+       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMW3gy7PwZty2UC1vDttn-CKF4XOV4khbbRQ&s" alt="Masala, Oil & More">
+       <h3>Masala, Oil & More</h3>
+     </div>
+     <div class="category-card" id="category-11">
+       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqS8iTgybSWFKlIcvS4XRDnRGgaAMmidopxQ&s" alt="Sauces & Spreads">
+       <h3>Sauces & Spreads</h3>
+     </div>
+     <div class="category-card" id="category-12">
+       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRyEGHZw3dLnZlWyYraSY9zgDWxkjSlS7QNQ&s" alt="Chicken, Meat & Fish">
+       <h3>Chicken, Meat & Fish</h3>
+     </div>
+    
+     <div class="category-card" id="category-13">
+       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSITVUBdATXwl-bC2qe7Rgw7VhwHdYpQK-Ysg&s" alt="milk">
+       <h3>Milk </h3>
+     </div>
+     <script src="product.js"></script>
+     <div class="category-card" id="category-14">
+       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHzpoPOQfMROO7NgZSgoP1Z0I14ntzR0apmw&s" alt="Cleaning Essentials">
+       <h3>Cleaning Essentials</h3>
+     </div>
+     </div>
+ 
+  
+  >
+<div class="product-list" id="product-list-1">
+    <h1 class="h2p">Products in Dairy, Bread & Eggs</h1>
+    
+    <div class="product-grid">
+      <div class="product-card">
+        <img
+          alt="Eggs"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHqP1X7MffnrMMuMGaONAxT4gyccX7f_eM9g&s"
+          class="product-image"
+        />
+        <h2 class="product-name">Eggs</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">160</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="120" data-product="Eggs">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="120" data-product="Eggs">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHqP1X7MffnrMMuMGaONAxT4gyccX7f_eM9g&s"
+          data-price="120"
+          data-product="Eggs"
+        >
+          Add Cart
+        </button>
+      </div>
+   
+  </div>
+  </div>
+  
+  <div class="product-list" id="product-list-2">
+    <h1 class="h2p">Products in Fruits & Vegetables</h1>
+
+    <div class="product-grid">
+    <div class="product-card">
+      <img
+        alt="Mangoes"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSIZsfkc2zDCA423IfWyeg_FaRvFs_LyLeMUw&s"
+        class="product-image"
+      />
+      <h2 class="product-name">Mangoes</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">100</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="100" data-product="Mangoes">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="100" data-product="Mangoes">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSIZsfkc2zDCA423IfWyeg_FaRvFs_LyLeMUw&s"
+        data-price="100"
+        data-product="Mangoes"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Lemon"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKniGLkw3gl8ZRO229AGaLTDO2JYK4fEjGBQ&s"
+        class="product-image"
+      />
+      <h2 class="product-name"> Lemons</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">30</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="30" data-product="Lemon">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="30" data-product="Lemon">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKniGLkw3gl8ZRO229AGaLTDO2JYK4fEjGBQ&s"
+        data-price="30"
+        data-product="Lemon"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Coconut"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTyPgEYoIb60gjJsV3uq0Edv_jRDr7DYpWTzw&s"
+        class="product-image"
+      />
+      <h2 class="product-name"> Coconuts</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">50</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="50" data-product="Coconut">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="50" data-product="Coconut">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTyPgEYoIb60gjJsV3uq0Edv_jRDr7DYpWTzw&s"
+        data-price="50"
+        data-product="Coconut"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Guava"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyYGmnK_M4VuEcVun62J08tKhkJMpQE6yQARHJuR7nwwT8zFO_KufUwkAaLoSK2GPh8l8&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Guavas</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">80</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="80" data-product="Guava">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="80" data-product="Guava">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyYGmnK_M4VuEcVun62J08tKhkJMpQE6yQARHJuR7nwwT8zFO_KufUwkAaLoSK2GPh8l8&usqp=CAU"
+        data-price="80"
+        data-product="Guava"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Orange"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS18hBQSuse2f2HCyaN9OVrYjuC9OBTlUCFmw&s"
+        class="product-image"
+      />
+      <h2 class="product-name"> Oranges</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">120</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="120" data-product="Orange">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="120" data-product="Orange">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS18hBQSuse2f2HCyaN9OVrYjuC9OBTlUCFmw&s"
+        data-price="120"
+        data-product="Orange"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Apples"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQm6e67f8Q3zvseDyr5ud1uauCQgM00Zu9Tsg&s"
+        class="product-image"
+      />
+      <h2 class="product-name"> Apples</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">150</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="150" data-product="Apples">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="150" data-product="Apples">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQm6e67f8Q3zvseDyr5ud1uauCQgM00Zu9Tsg&s"
+        data-price="150"
+        data-product="Apples"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Grapes"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ5urczc_SaeU6xf4g__rb7rhzb08ADomdDjw&s"
+        class="product-image"
+      />
+      <h2 class="product-name"> Grapes</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">200</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="200" data-product="Grapes">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="200" data-product="Grapes">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ5urczc_SaeU6xf4g__rb7rhzb08ADomdDjw&s"
+        data-price="200"
+        data-product="Grapes"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Strawberries"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYRtZHvwVYJ51FWas1GIzevOUJop9QFjgPUnwOWBWvPNlWYUttcAPTemTTer20yHl0ORU&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Strawberries</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">250</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="250" data-product="Strawberries">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="250" data-product="Strawberries">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYRtZHvwVYJ51FWas1GIzevOUJop9QFjgPUnwOWBWvPNlWYUttcAPTemTTer20yHl0ORU&usqp=CAU"
+        data-price="250"
+        data-product="Strawberries"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Pineapples"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPmIYqSjizluuBE9BoWYydqL-rdj0UUqxc2jqf79ZJlWqNuCIymeYMDqPHvB9oQ3vHpEk&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Pineapples</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">180</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="180" data-product="Pineapples">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="180" data-product="Pineapples">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPmIYqSjizluuBE9BoWYydqL-rdj0UUqxc2jqf79ZJlWqNuCIymeYMDqPHvB9oQ3vHpEk&usqp=CAU"
+        data-price="180"
+        data-product="Pineapples"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Blueberries"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWV10BHy2Qr21n-tx54V_2qZFufKyNasTCSfPXTBULMEsJCnHJa4q5acQTvza9DKVqZm8&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Blueberries</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">90</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="90" data-product="Blueberries">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="90" data-product="Blueberries">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWV10BHy2Qr21n-tx54V_2qZFufKyNasTCSfPXTBULMEsJCnHJa4q5acQTvza9DKVqZm8&usqp=CAU"
+        data-price="90"
+        data-product="Blueberries"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Kiwis"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSVVGi2toXObCLsWs9BH4nodaI8ULL9qB6XsoijBPyZE9KT4YG_ZJ-C8C3Jqc2I4Lh0vZ8&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Kiwis</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">300</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="300" data-product="Kiwis">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="300" data-product="Kiwis">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSVVGi2toXObCLsWs9BH4nodaI8ULL9qB6XsoijBPyZE9KT4YG_ZJ-C8C3Jqc2I4Lh0vZ8&usqp=CAU"
+        data-price="300"
+        data-product="Kiwis"
+      >
+        Add Cart
+      </button>
+    </div>
+    <div class="product-card">
+      <img
+        alt="Papayas"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4FEFe8dLN2hgZYz9x_cecZ7vOQ0cLFicDVzoBgYTKJWNrXBFAWigVFndLHmdzVCrjkgM&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Papayas</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">130</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="130" data-product="Papayas">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="130" data-product="Papayas">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4FEFe8dLN2hgZYz9x_cecZ7vOQ0cLFicDVzoBgYTKJWNrXBFAWigVFndLHmdzVCrjkgM&usqp=CAU"
+        data-price="130"
+        data-product="Papayas"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Peaches"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPo2DmKXkllwiBJexMt5s789_-Q5-hiof5fNU_gGTeGnAGlMiwxS6n9WtTLbhbr3EDZ7Y&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name">Peaches</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">160</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="160" data-product="Peaches">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="160" data-product="Peaches">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPo2DmKXkllwiBJexMt5s789_-Q5-hiof5fNU_gGTeGnAGlMiwxS6n9WtTLbhbr3EDZ7Y&usqp=CAU"
+        data-price="160"
+        data-product="Peaches"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Cherries"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREPOqj1soYScdDTlB__DIvusDy6KrRdnHY0g4OE3Hq6lsrmAyIezp-ZE_ECHS685AGMDQ&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Cherries</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">280</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="280" data-product="Cherries">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="280" data-product="Cherries">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREPOqj1soYScdDTlB__DIvusDy6KrRdnHY0g4OE3Hq6lsrmAyIezp-ZE_ECHS685AGMDQ&usqp=CAU"
+        data-price="280"
+        data-product="Cherries"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Pomegranates"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSms4IM0IqCOWi2aBadMC6qN4RL04j2M-J49VHUVPjC3DO1Ejq5tdNUBNxEWYfviuqCjDc&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Pomegranates</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">240</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="240" data-product="Pomegranates">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="240" data-product="Pomegranates">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSms4IM0IqCOWi2aBadMC6qN4RL04j2M-J49VHUVPjC3DO1Ejq5tdNUBNxEWYfviuqCjDc&usqp=CAU"
+        data-price="240"
+        data-product="Pomegranates"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Fig"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ6HflqRExZ7OxvK4MzPIL1ozEVzyn40aSo7kSXWAld-fxMbZ55JDyJox94Rvuvxl8BrWQ&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Figs</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">150</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="150" data-product="Fig">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="150" data-product="Fig">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ6HflqRExZ7OxvK4MzPIL1ozEVzyn40aSo7kSXWAld-fxMbZ55JDyJox94Rvuvxl8BrWQ&usqp=CAU"
+        data-price="150"
+        data-product="Fig"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Lychee"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTsGdlF0XOnBVknSTDGBxlcO7MXQ1wAqetGsFK17uegllgGi9x9rQE-vNIpt80DElf4P-Y&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Lychees</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">200</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="200" data-product="Lychee">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="200" data-product="Lychee">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTsGdlF0XOnBVknSTDGBxlcO7MXQ1wAqetGsFK17uegllgGi9x9rQE-vNIpt80DElf4P-Y&usqp=CAU"
+        data-price="200"
+        data-product="Lychee"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Sapota (Chikoo)"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTkWRlv7HOCl9rAL-2FboXwwzpIdE1_1aMgAcidhqnMdrxvJo0QhG6qNmp4zlf6B9WadTg&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Sapota (Chikoo)</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">200</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="200" data-product="Sapota (Chikoo)">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="200" data-product="Sapota (Chikoo)">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTkWRlv7HOCl9rAL-2FboXwwzpIdE1_1aMgAcidhqnMdrxvJo0QhG6qNmp4zlf6B9WadTg&usqp=CAU"
+        data-price="200"
+        data-product="Sapota (Chikoo)"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Custard Apple"
+        src="https://media.istockphoto.com/id/913533868/photo/sugar-apple-isolated-on-white.jpg?s=612x612&w=0&k=20&c=wxIq7r4MVvsQ7a4Wp97pWX9HLEQRSr0pyQTokgasYu0="
+        class="product-image"
+      />
+      <h2 class="product-name"> Custard Apples</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">60</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="60" data-product="Custard Apple">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="60" data-product="Custard Apple">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://media.istockphoto.com/id/913533868/photo/sugar-apple-isolated-on-white.jpg?s=612x612&w=0&k=20&c=wxIq7r4MVvsQ7a4Wp97pWX9HLEQRSr0pyQTokgasYu0="
+        data-price="60"
+        data-product="Custard Apple"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Apricot"
+        src="https://www.fruitsvilla.com/cdn/shop/products/dry-apricots-min_433x.png?v=1607452869"
+        class="product-image"
+      />
+      <h2 class="product-name"> Apricots</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">120</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="120" data-product="Apricot">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="120" data-product="Apricot">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://www.fruitsvilla.com/cdn/shop/products/dry-apricots-min_433x.png?v=1607452869"
+        data-price="120"
+        data-product="Apricot"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <!-- Continue for the remaining products (Plum, Blackberry, Raspberry, Dragon Fruit, etc.) -->
+    <div class="product-card">
+      <img
+        alt="Plum"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzkC_FAmdU6EDNoukjaIb241NsdMOHdYUkjpVybXLZ7x02z4ogYLIPwO6nvomnbus7qCk&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Plum</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">90</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="90" data-product="Plum">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="90" data-product="Plum">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzkC_FAmdU6EDNoukjaIb241NsdMOHdYUkjpVybXLZ7x02z4ogYLIPwO6nvomnbus7qCk&usqp=CAU"
+        data-price="90"
+        data-product="Plum"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Blackberry"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRq_gB5gqDD-eJj9K8geh0bQochDq1heuywYBKrCGkhOjr3O_XLGlx_QvGMx7I8z_He9VU&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Blackberries</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">200</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="200" data-product="Blackberry">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="200" data-product="Blackberry">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRq_gB5gqDD-eJj9K8geh0bQochDq1heuywYBKrCGkhOjr3O_XLGlx_QvGMx7I8z_He9VU&usqp=CAU"
+        data-price="200"
+        data-product="Blackberry"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Raspberry"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZAeDwmxgoDDgJk1q8GcNd3Ay1R0hD48flG3yq4kfSdOXEGt4jufa2D3Z2qEWp1X17i4k&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Raspberries</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">220</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="220" data-product="Raspberry">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="220" data-product="Raspberry">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZAeDwmxgoDDgJk1q8GcNd3Ay1R0hD48flG3yq4kfSdOXEGt4jufa2D3Z2qEWp1X17i4k&usqp=CAU"
+        data-price="220"
+        data-product="Raspberry"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Dragon Fruit"
+        src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Pitaya_cross_section_ed2.jpg/640px-Pitaya_cross_section_ed2.jpg"
+        class="product-image"
+      />
+      <h2 class="product-name"> Dragon Fruit</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">220</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="220" data-product="Dragon Fruit">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="220" data-product="Dragon Fruit">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Pitaya_cross_section_ed2.jpg/640px-Pitaya_cross_section_ed2.jpg"
+        data-price="220"
+        data-product="Dragon Fruit"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Jackfruit"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwVqo8_gewsWIanK1fAw0Gg1pNqBKG9D2GXJj1rxvCb24L7XEgGeZlL5KRxah0qwEfRbQ&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Jackfruit</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">300</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="300" data-product="Jackfruit">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="300" data-product="Jackfruit">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwVqo8_gewsWIanK1fAw0Gg1pNqBKG9D2GXJj1rxvCb24L7XEgGeZlL5KRxah0qwEfRbQ&usqp=CAU"
+        data-price="300"
+        data-product="Jackfruit"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Avocado"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmkkhB6tcHvbrrlO9fOfDhcZ3wSPDoX4tH72iN2N4yKilfSzLzmwYPZZEjNZgsemXRiyw&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Avocado</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">250</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="250" data-product="Avocado">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="250" data-product="Avocado">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmkkhB6tcHvbrrlO9fOfDhcZ3wSPDoX4tH72iN2N4yKilfSzLzmwYPZZEjNZgsemXRiyw&usqp=CAU"
+        data-price="250"
+        data-product="Avocado"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Cranberry"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSNMtfRdVa5iChd_p3erTgPuJUGgzgy-tVroRVTxk3DdY2ut5bmQ-D37ks9tTKc8vX2K1Q&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Cranberries</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">300</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="300" data-product="Cranberry">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="300" data-product="Cranberry">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSNMtfRdVa5iChd_p3erTgPuJUGgzgy-tVroRVTxk3DdY2ut5bmQ-D37ks9tTKc8vX2K1Q&usqp=CAU"
+        data-price="300"
+        data-product="Cranberry"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Passion Fruit"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUr-rSYxrChvNWOKfVBIH3E-1AQKyrXV_kEVi9_Ml6sDFrqkq80OevOVYCKbogrC5ei4w&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Passion Fruit</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">180</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="180" data-product="Passion Fruit">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="180" data-product="Passion Fruit">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUr-rSYxrChvNWOKfVBIH3E-1AQKyrXV_kEVi9_Ml6sDFrqkq80OevOVYCKbogrC5ei4w&usqp=CAU"
+        data-price="180"
+        data-product="Passion Fruit"
+      >
+        Add Cart
+      </button>
+    </div>
+    <div class="product-card">
+      <img
+        alt="Blackcurrant"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRX690TbaEWqh3-9OLDCsR76okJCYvxr7h7vA&s"
+        class="product-image"
+      />
+      <h2 class="product-name"> Blackcurrant</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">250</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="250" data-product="Blackcurrant">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="250" data-product="Blackcurrant">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRX690TbaEWqh3-9OLDCsR76okJCYvxr7h7vA&s"
+        data-price="250"
+        data-product="Blackcurrant"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Gooseberry (Amla)"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWHzk3TPowpbMDwc1YGExM5b1U995zkBCg9bHRGhKaIcGIc6-Oo1kqBiA9DjiW5HO4J18&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name">Gooseberry (Amla)</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">250</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="250" data-product="Gooseberry (Amla)">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="250" data-product="Gooseberry (Amla)">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWHzk3TPowpbMDwc1YGExM5b1U995zkBCg9bHRGhKaIcGIc6-Oo1kqBiA9DjiW5HO4J18&usqp=CAU"
+        data-price="250"
+        data-product="Gooseberry (Amla)"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Rambutan"
+        src="https://homegrown.in/upload/product/big1193470275.jpg"
+        class="product-image"
+      />
+      <h2 class="product-name"> Rambutan</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">150</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="150" data-product="Rambutan">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="150" data-product="Rambutan">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://homegrown.in/upload/product/big1193470275.jpg"
+        data-price="150"
+        data-product="Rambutan"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Tamarind"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRVZ4H1vhDVjHN4soWn9UJBwOakpktTlnldrZls781ZDnSpJ48NXyUmP0it1UvS1NBWu8g&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Tamarind</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">220</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="220" data-product="Tamarind">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="220" data-product="Tamarind">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRVZ4H1vhDVjHN4soWn9UJBwOakpktTlnldrZls781ZDnSpJ48NXyUmP0it1UvS1NBWu8g&usqp=CAU"
+        data-price="220"
+        data-product="Tamarind"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Mulberries"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQo8s9UC6NWQT7pps9u4UBgxGn5Mc7UopLzfA&s"
+        class="product-image"
+      />
+      <h2 class="product-name"> Mulberries</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">180</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="180" data-product="Mulberry">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="180" data-product="Mulberry">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQo8s9UC6NWQT7pps9u4UBgxGn5Mc7UopLzfA&s"
+        data-price="180"
+        data-product="Mulberry"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Dates"
+        src="https://healthybuddha.in/image/cache/catalog/mejdool1-500x515.jpeg"
+        class="product-image"
+      />
+      <h2 class="product-name"> Dates</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">200</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="200" data-product="Date">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="200" data-product="Date">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://healthybuddha.in/image/cache/catalog/mejdool1-500x515.jpeg"
+        data-price="200"
+        data-product="Date"
+      >
+        Add Cart
+      </button>
+    </div>
+    <div class="product-card">
+      <img
+        alt="Star Fruit"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7m0ajaFfR6tZsJ9uwuYGji49Ui07WSqEgKoLSTmTOKDdG63K2ZsW5c0BiCL28xrcoJ0k&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Star Fruit</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">180</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="180" data-product="Star Fruit">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="180" data-product="Star Fruit">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7m0ajaFfR6tZsJ9uwuYGji49Ui07WSqEgKoLSTmTOKDdG63K2ZsW5c0BiCL28xrcoJ0k&usqp=CAU"
+        data-price="180"
+        data-product="Star Fruit"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Persimmon"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQO1FE4zGwtl9S1w79d5hJMewyw41lPI2jGD2genKTQNYCzBJYMkqEVzNkEqHDQJ_m3B0&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Persimmon</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">180</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="180" data-product="Persimmon">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="180" data-product="Persimmon">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQO1FE4zGwtl9S1w79d5hJMewyw41lPI2jGD2genKTQNYCzBJYMkqEVzNkEqHDQJ_m3B0&usqp=CAU"
+        data-price="180"
+        data-product="Persimmon"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Pear"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSoPz4HllMCZtzq21DlG8niSgffff1R44NJOkoz5MWiAIvvSr7-RFUk3RrRrySxFX5dJSw&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name">Pear</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">250</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="250" data-product="Pear">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="250" data-product="Pear">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSoPz4HllMCZtzq21DlG8niSgffff1R44NJOkoz5MWiAIvvSr7-RFUk3RrRrySxFX5dJSw&usqp=CAU"
+        data-price="250"
+        data-product="Pear"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Peach"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ2oBBuRFs0M7EMypaXGY9pgyRec-zoopzKb9hHPZS-cXnj32VG2BTW0wiioWud2H64G6E&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Peach</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">220</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="220" data-product="Peach">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="220" data-product="Peach">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ2oBBuRFs0M7EMypaXGY9pgyRec-zoopzKb9hHPZS-cXnj32VG2BTW0wiioWud2H64G6E&usqp=CAU"
+        data-price="220"
+        data-product="Peach"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Muskmelon"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrL-vz99lPDwT1R1H22BBV9htUIyXLSscKrbGfd4evNlPnkbCR98vki_A9PSTcgnHG9kg&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Muskmelon</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">240</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="240" data-product="Muskmelon">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="240" data-product="Muskmelon">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrL-vz99lPDwT1R1H22BBV9htUIyXLSscKrbGfd4evNlPnkbCR98vki_A9PSTcgnHG9kg&usqp=CAU"
+        data-price="240"
+        data-product="Muskmelon"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Sweet Lime (Mosambi)"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7-tbO9RbGsWguq5vAurjt1TfFdP2cmNlowniO7rC-8qm8-qXXgThJxvg5R8GxyD_HcQo&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Sweet Lime</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">150</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="150" data-product="Sweet Lime (Mosambi)">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="150" data-product="Sweet Lime (Mosambi)">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7-tbO9RbGsWguq5vAurjt1TfFdP2cmNlowniO7rC-8qm8-qXXgThJxvg5R8GxyD_HcQo&usqp=CAU"
+        data-price="150"
+        data-product="Sweet Lime (Mosambi)"
+      >
+        Add Cart
+      </button>
+    </div>
+    <div class="product-card">
+      <img
+        alt="Bael (Wood Apple)"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQ9tQajvg2RyPFvhJ7_aJ-zgvb5QrMtbjNN-xmyXwgqKbXkrdC_zTeQnE5bFcs0CSHYwU&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Bael (Wood Apple)</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">130</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="130" data-product="Bael (Wood Apple)">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="130" data-product="Bael (Wood Apple)">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQ9tQajvg2RyPFvhJ7_aJ-zgvb5QrMtbjNN-xmyXwgqKbXkrdC_zTeQnE5bFcs0CSHYwU&usqp=CAU"
+        data-price="130"
+        data-product="Bael (Wood Apple)"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Indian Jujube (Ber)"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTioL8PT5W5gCeuLQpMrprpmeXB8jMPV_OUZO-TArDGquGq6beyEPmwwSY3W3Tjk9CmrQ&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name"> Indian Jujube (Ber)</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">100</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="100" data-product="Indian Jujube (Ber)">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="100" data-product="Indian Jujube (Ber)">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTioL8PT5W5gCeuLQpMrprpmeXB8jMPV_OUZO-TArDGquGq6beyEPmwwSY3W3Tjk9CmrQ&usqp=CAU"
+        data-price="100"
+        data-product="Indian Jujube (Ber)"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    
+    </div>
+    </div>
+  
+  <div class="product-list" id="product-list-3">
+    <h1 class="h2p">Cold Drinks & Juices</h1>
+    <!-- List of products for Meat & Poultry -->
+    <div class="product-grid">
+      <div class="product-card">
+        <img
+          alt="Coca-Cola"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlj3x9YgNFo4QrfoHeu3iX1zlk5Sb8pbBrOA&s"
+          class="product-image"
+        />
+        <h2 class="product-name">Coca-Cola</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">50</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="50" data-product="Coca-Cola">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="50" data-product="Coca-Cola">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlj3x9YgNFo4QrfoHeu3iX1zlk5Sb8pbBrOA&s"
+          data-price="50"
+          data-product="Coca-Cola"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Pepsi"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6wlz-k2jh7l1s4h2LURSsbksPHl6QCwhUFw&s"
+          class="product-image"
+        />
+        <h2 class="product-name">Pepsi</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">50</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="50" data-product="Pepsi">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="50" data-product="Pepsi">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6wlz-k2jh7l1s4h2LURSsbksPHl6QCwhUFw&s"
+          data-price="50"
+          data-product="Pepsi"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Sprite"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTDc1-FwaWbard4JQF1T9jHI7ycLKHr8qCBsA&s"
+          class="product-image"
+        />
+        <h2 class="product-name">Sprite</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">50</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="50" data-product="Sprite">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="50" data-product="Sprite">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTDc1-FwaWbard4JQF1T9jHI7ycLKHr8qCBsA&s"
+          data-price="50"
+          data-product="Sprite"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Fanta"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTXC0XsxLQ1nXQjChmSeHryk8RyDLKdhJsIdQ&s"
+          class="product-image"
+        />
+        <h2 class="product-name">Fanta</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">50</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="50" data-product="Fanta">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="50" data-product="Fanta">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTXC0XsxLQ1nXQjChmSeHryk8RyDLKdhJsIdQ&s"
+          data-price="50"
+          data-product="Fanta"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="7Up"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQeC3N8sAykMqrKOfRPH4qY7yd2pbo6qEeTTg&s"
+          class="product-image"
+        />
+        <h2 class="product-name">7Up</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">50</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="50" data-product="7Up">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="50" data-product="7Up">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQeC3N8sAykMqrKOfRPH4qY7yd2pbo6qEeTTg&s"
+          data-price="50"
+          data-product="7Up"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Mountain Dew"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3qp_P0CtN4Yv6ynY_jGpDq7xRVKwnvYrT_A&s"
+          class="product-image"
+        />
+        <h2 class="product-name">Mountain Dew</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">50</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="50" data-product="Mountain Dew">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="50" data-product="Mountain Dew">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3qp_P0CtN4Yv6ynY_jGpDq7xRVKwnvYrT_A&s"
+          data-price="50"
+          data-product="Mountain Dew"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Thums Up"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQplHkrqSnuEPkSq9Dsc1tXsScIpLILhENjxA&s"
+          class="product-image"
+        />
+        <h2 class="product-name">Thums Up</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">50</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="50" data-product="Thums Up">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="50" data-product="Thums Up">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQplHkrqSnuEPkSq9Dsc1tXsScIpLILhENjxA&s"
+          data-price="50"
+          data-product="Thums Up"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Mirinda"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRjzWWjq4_EZI_xqHIpkEhE2Y2vXHTiE3-849V9ciJWoI34GcbAmeNekL5lsuuIJOpGwJA&usqp=CAU"
+          class="product-image"
+        />
+        <h2 class="product-name">Mirinda</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">50</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="50" data-product="Mirinda">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="50" data-product="Mirinda">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRjzWWjq4_EZI_xqHIpkEhE2Y2vXHTiE3-849V9ciJWoI34GcbAmeNekL5lsuuIJOpGwJA&usqp=CAU"
+          data-price="50"
+          data-product="Mirinda"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Limca"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcShBytXfwg8Cq5gaLf9A5ASEhyL9YdlgrEMqMEkyNWd5bJYTBTad1eVS06eo5TOdcn1fZ0&usqp=CAU"
+          class="product-image"
+        />
+        <h2 class="product-name">Limca</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">50</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="50" data-product="Limca">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="50" data-product="Limca">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcShBytXfwg8Cq5gaLf9A5ASEhyL9YdlgrEMqMEkyNWd5bJYTBTad1eVS06eo5TOdcn1fZ0&usqp=CAU"
+          data-price="50"
+          data-product="Limca"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Dr Pepper"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKYvuFcf-xTXiHzROYV-e9DSgJRS5cK9cYBQ&s"
+          class="product-image"
+        />
+        <h2 class="product-name">Dr Pepper</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">80</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="80" data-product="Dr Pepper">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="80" data-product="Dr Pepper">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKYvuFcf-xTXiHzROYV-e9DSgJRS5cK9cYBQ&s"
+          data-price="80"
+          data-product="Dr Pepper"
+        >
+          Add Cart
+        </button>
+      </div>
+      <div class="product-card">
+        <img
+          alt="Red Bull"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwPQWRFkLNU8t96XjMsu_XD4ARKOpo-aFQB9b7v3P0c25ZXxKNU6K3P5SdSs9zXMOSIxg&usqp=CAU"
+          class="product-image"
+        />
+        <h2 class="product-name">Red Bull</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">100</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="100" data-product="Red Bull">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="100" data-product="Red Bull">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwPQWRFkLNU8t96XjMsu_XD4ARKOpo-aFQB9b7v3P0c25ZXxKNU6K3P5SdSs9zXMOSIxg&usqp=CAU"
+          data-price="100"
+          data-product="Red Bull"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Monster Energy"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQz4okSg2iT90h4zF9ZrfdiTg60U_xE95kVVFYkjdFRYS56w6kkuvYOf46XM-Yp4BC0gAg&usqp=CAU"
+          class="product-image"
+        />
+        <h2 class="product-name">Monster Energy</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">120</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="120" data-product="Monster Energy">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="120" data-product="Monster Energy">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQz4okSg2iT90h4zF9ZrfdiTg60U_xE95kVVFYkjdFRYS56w6kkuvYOf46XM-Yp4BC0gAg&usqp=CAU"
+          data-price="120"
+          data-product="Monster Energy"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Gatorade"
+          src="https://www.gatorade.com.au/images/default-source/products/product-detail/product-range_product5.png?sfvrsn=9e9b249b_2"
+          class="product-image"
+        />
+        <h2 class="product-name">Gatorade</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">60</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="60" data-product="Gatorade">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="60" data-product="Gatorade">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://www.gatorade.com.au/images/default-source/products/product-detail/product-range_product5.png?sfvrsn=9e9b249b_2"
+          data-price="60"
+          data-product="Gatorade"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Powerade"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMO1LU8qZhL5iboSS5gmd7SRBt04vRwrJCffz8256uV4qmearIeQo2hakkvlgVXhnm6Lw&usqp=CAU"
+          class="product-image"
+        />
+        <h2 class="product-name">Powerade</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">70</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="70" data-product="Powerade">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="70" data-product="Powerade">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMO1LU8qZhL5iboSS5gmd7SRBt04vRwrJCffz8256uV4qmearIeQo2hakkvlgVXhnm6Lw&usqp=CAU"
+          data-price="70"
+          data-product="Powerade"
+        >
+          Add Cart
+        </button>
+      </div>
+      <div class="product-card">
+        <img
+          alt="Cream Soda"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSu5VJuH6DyprhVAMChyRrJpZEMzGFIt1WClE4bf5olrradiVQnYvSiLu22lcaBm82OTKQ&usqp=CAU"
+          class="product-image"
+        />
+        <h2 class="product-name">Cream Soda</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">60</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="60" data-product="Cream Soda">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="60" data-product="Cream Soda">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSu5VJuH6DyprhVAMChyRrJpZEMzGFIt1WClE4bf5olrradiVQnYvSiLu22lcaBm82OTKQ&usqp=CAU"
+          data-price="60"
+          data-product="Cream Soda"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Ginger Ale"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsU-41Esuur-69mOEwSOzP3ok7jO12dwKnUCzNz5ZcFUMiGVM7WEr0wDCRqESQHbc_QyE&usqp=CAU"
+          class="product-image"
+        />
+        <h2 class="product-name">Ginger Ale</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">70</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="70" data-product="Ginger Ale">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="70" data-product="Ginger Ale">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsU-41Esuur-69mOEwSOzP3ok7jO12dwKnUCzNz5ZcFUMiGVM7WEr0wDCRqESQHbc_QyE&usqp=CAU"
+          data-price="70"
+          data-product="Ginger Ale"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Club Soda"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTwS9yovr5zN66qAwOoCwfLN9HBYgpyk0WAzj3AGGdKgWgcTsIWihdcN8otz8m3hhamic&usqp=CAU"
+          class="product-image"
+        />
+        <h2 class="product-name">Club Soda</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">40</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="40" data-product="Club Soda">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="40" data-product="Club Soda">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTwS9yovr5zN66qAwOoCwfLN9HBYgpyk0WAzj3AGGdKgWgcTsIWihdcN8otz8m3hhamic&usqp=CAU"
+          data-price="40"
+          data-product="Club Soda"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      
+      
+      <div class="product-card">
+        <img
+          alt="Nestea"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsxN_D1wk1_AcOPB14ScjKkMq6-GDDqs2m0bOurwO2Z-vownRzbKx1xgo8J0Y0-H42kbE&usqp=CAU"
+          class="product-image"
+        />
+        <h2 class="product-name">Nestea</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">75</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="75" data-product="Nestea">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="75" data-product="Nestea">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsxN_D1wk1_AcOPB14ScjKkMq6-GDDqs2m0bOurwO2Z-vownRzbKx1xgo8J0Y0-H42kbE&usqp=CAU"
+          data-price="75"
+          data-product="Nestea"
+        >
+          Add Cart
+        </button>
+      </div>
+      <div class="product-card">
+        <img
+          alt="Orange Juice"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSr_97OhunBbNw3HQs5dCpLYkaTcs8OOMO5jA&s"
+          class="product-image"
+        />
+        <h2 class="product-name">Orange Juice</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">50</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="50" data-product="Orange Juice">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="50" data-product="Orange Juice">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSr_97OhunBbNw3HQs5dCpLYkaTcs8OOMO5jA&s"
+          data-price="50"
+          data-product="Orange Juice"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Lemon Juice"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRVzB5FZOyYeHxSRWNbFVGI_WmNLcngc8M-_Y1b-j7UPrUNBVnaMt01k0ddcWDY0m25sMM&usqp=CAU"
+          class="product-image"
+        />
+        <h2 class="product-name">Lemon Juice</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">45</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="45" data-product="Lemon Juice">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="45" data-product="Lemon Juice">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRVzB5FZOyYeHxSRWNbFVGI_WmNLcngc8M-_Y1b-j7UPrUNBVnaMt01k0ddcWDY0m25sMM&usqp=CAU"
+          data-price="45"
+          data-product="Lemon Juice"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Grapefruit Juice"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgE4MiOom_0VzD8hpwWXw5_9vx0FL9xYkdfQ&s"
+          class="product-image"
+        />
+        <h2 class="product-name">Grapefruit Juice</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">60</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="60" data-product="Grapefruit Juice">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="60" data-product="Grapefruit Juice">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgE4MiOom_0VzD8hpwWXw5_9vx0FL9xYkdfQ&s"
+          data-price="60"
+          data-product="Grapefruit Juice"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Lime Juice"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSo3lq6Q6mAyvM4SUvShMpBrpNhqP5rBtVGZJ-589yZVsl8vvQxkPCZgLowr0WcVVlCVQ8&usqp=CAU"
+          class="product-image"
+        />
+        <h2 class="product-name">Lime Juice</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">55</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="55" data-product="Lime Juice">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="55" data-product="Lime Juice">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSo3lq6Q6mAyvM4SUvShMpBrpNhqP5rBtVGZJ-589yZVsl8vvQxkPCZgLowr0WcVVlCVQ8&usqp=CAU"
+          data-price="55"
+          data-product="Lime Juice"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Tropical Juices"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4J4LGOLCIAMbwMeSAiiXbYGmxjYvg4v3kxw&s"
+          class="product-image"
+        />
+        <h2 class="product-name">Tropical Juices</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">70</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="70" data-product="Tropical Juices">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="70" data-product="Tropical Juices">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4J4LGOLCIAMbwMeSAiiXbYGmxjYvg4v3kxw&s"
+          data-price="70"
+          data-product="Tropical Juices"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Mango Juice"
+          src="https://m.media-amazon.com/images/I/31Y3jsXXa3S.jpg"
+          class="product-image"
+        />
+        <h2 class="product-name">Mango Juice</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">80</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="80" data-product="Mango Juice">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="80" data-product="Mango Juice">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://m.media-amazon.com/images/I/31Y3jsXXa3S.jpg"
+          data-price="80"
+          data-product="Mango Juice"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Pineapple Juice"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRw_4wlrByGtC2Edph6e9EQ9vfzZ_5DqtZ7vQ&s"
+          class="product-image"
+        />
+        <h2 class="product-name">Pineapple Juice</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">85</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="85" data-product="Pineapple Juice">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="85" data-product="Pineapple Juice">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRw_4wlrByGtC2Edph6e9EQ9vfzZ_5DqtZ7vQ&s"
+          data-price="85"
+          data-product="Pineapple Juice"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Coconut Water"
+          src="https://images.slurrp.com/prodarticles/eier3hctca.webp"
+          class="product-image"
+        />
+        <h2 class="product-name">Coconut Water</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">50</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="50" data-product="Coconut Water">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="50" data-product="Coconut Water">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://images.slurrp.com/prodarticles/eier3hctca.webp"
+          data-price="50"
+          data-product="Coconut Water"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Guava Juice"
+          src="https://5.imimg.com/data5/CN/ES/MY-50308388/guava-juice-250x250.jpg"
+          class="product-image"
+        />
+        <h2 class="product-name">Guava Juice</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">65</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="65" data-product="Guava Juice">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="65" data-product="Guava Juice">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://5.imimg.com/data5/CN/ES/MY-50308388/guava-juice-250x250.jpg"
+          data-price="65"
+          data-product="Guava Juice"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Mixed Juices"
+          src="https://5.imimg.com/data5/YK/YQ/WJ/SELLER-58723999/dabur-real-juice-1-ltr.jpg"
+          class="product-image"
+        />
+        <h2 class="product-name">Mixed Juices</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">90</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="90" data-product="Mixed Juices">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="90" data-product="Mixed Juices">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://5.imimg.com/data5/YK/YQ/WJ/SELLER-58723999/dabur-real-juice-1-ltr.jpg"
+          data-price="90"
+          data-product="Mixed Juices"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+    
+      
+     
+      
+      
+      </div>
+
+                
+
+  </div>
+  
+  <div class="product-list" id="product-list-4">
+    <h4>Products in Seafood</h4>
+    <!-- List of products for Seafood -->
+    <div class="product-grid">
+      <div class="product-card">
+        <img
+          alt="Coca-Cola bottle"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlj3x9YgNFo4QrfoHeu3iX1zlk5Sb8pbBrOA&s"
+          class="product-image"
+        />
+        <h2 class="product-name">Coca-Cola</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">50</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="50" data-product="Coca-Cola">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="50" data-product="Coca-Cola">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlj3x9YgNFo4QrfoHeu3iX1zlk5Sb8pbBrOA&s"
+          data-price="50"
+          data-product="Coca-Cola"
+        >
+          Add Cart
+        </button>
+      </div>
+      <div class="product-card">
+        <img
+          alt="Coca-Cola bottle"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRSKVwA2jWvSRM5na8VBdxkbsTGS7uO5uzjBg&s"
+          class="product-image"
+        />
+        <h2 class="product-name">Coca-Cola</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">50</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="50" data-product="Coca-Cola">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="50" data-product="Coca-Cola">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRSKVwA2jWvSRM5na8VBdxkbsTGS7uO5uzjBg&s"
+          data-price="50"
+          data-product="Coca-Cola"
+        >
+          Add Cart
+        </button>
+      </div>
+      <div class="product-card">
+        <img
+          alt="Coca-Cola bottle"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRSKVwA2jWvSRM5na8VBdxkbsTGS7uO5uzjBg&s"
+          class="product-image"
+        />
+        <h2 class="product-name">Coca-Cola</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">50</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="50" data-product="Coca-Cola">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="50" data-product="Coca-Cola">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRSKVwA2jWvSRM5na8VBdxkbsTGS7uO5uzjBg&s"
+          data-price="50"
+          data-product="Coca-Cola"
+        >
+          Add Cart
+        </button>
+      </div>
+    </div>
+    </div>
+  
+  
+  <div class="product-list" id="product-list-5">
+    <h4>Products in Bakery</h4>
+    <!-- List of products for Bakery -->
+     
+  </div>
+  
+  <div class="product-list" id="product-list-6">
+    <h4>Products in Beverages</h4>
+    <!-- List of products for Beverages -->
+  </div>
+  
+  <div class="product-list" id="product-list-7">
+    <h4>Products in Snacks</h4>
+    <!-- List of products for Snacks -->
+  </div>
+  
+  <div class="product-list" id="product-list-8">
+    <h1 class="h2p"> Tea, Coffee & Health Drink</h1>
+    <!-- List of products for Condiments -->
+    <div class="product-grid">
+      <div class="product-card">
+        <img
+          alt="Dabur Vedic Tea"
+          src="https://akm-img-a-in.tosshub.com/businesstoday/images/story/202211/vedic-tea_1-sixteen_nine.jpg"
+          class="product-image"
+        />
+        <h2 class="product-name">Dabur Vedic Tea</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">150</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="150" data-product="Dabur Vedic Tea">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="150" data-product="Dabur Vedic Tea">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://akm-img-a-in.tosshub.com/businesstoday/images/story/202211/vedic-tea_1-sixteen_nine.jpg"
+          data-price="150"
+          data-product="Dabur Vedic Tea"
+        >
+          Add Cart
+        </button>
+      </div>
+      <div class="product-card">
+        <img
+          alt="Tata Tea Agni"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWS_oP5yqfAIM_ibEZhMXPalf3QJPDst06-g&s"
+          class="product-image"
+        />
+        <h2 class="product-name">Tata Tea Agni</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">250</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="250" data-product="Tata Tea Agni">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="250" data-product="Tata Tea Agni">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWS_oP5yqfAIM_ibEZhMXPalf3QJPDst06-g&s"
+          data-price="250"
+          data-product="Tata Tea Agni"
+        >
+          Add Cart
+        </button>
+      </div>
+      <div class="product-card">
+        <img
+          alt="Tata Tea Gold"
+          src="https://m.media-amazon.com/images/I/5109sLDpkvL._AC_UF894,1000_QL80_.jpg"
+          class="product-image"
+        />
+        <h2 class="product-name">Tata Tea Gold</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">554</span> /- 
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="554" data-product="Tata Tea Gold">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="554" data-product="Tata Tea Gold">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://m.media-amazon.com/images/I/5109sLDpkvL._AC_UF894,1000_QL80_.jpg"
+          data-price="554"
+          data-product="Tata Tea Gold"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt=" Taaza Tea"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWi4bWvJl6pevprdTFa8eAjMQvyqfi3iwafE8NkDXk1YnSod13-iCOGYkBccc3drXurxg&usqp=CAU"
+          class="product-image"
+        />
+        <h2 class="product-name"> Taaza Tea</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">250</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="250" data-product=" Taaza Tea">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="250" data-product=" Taaza Tea">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWi4bWvJl6pevprdTFa8eAjMQvyqfi3iwafE8NkDXk1YnSod13-iCOGYkBccc3drXurxg&usqp=CAU"
+          data-price="250"
+          data-product=" Taaza Tea"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt=" Taj Mahal Tea"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSFU9Us_mLI1olVTJQ6IWtaPlXQLbsqFBxB23rwA5Ew7D5KXJ8B0f2CC_57sYRGZACgI2M&usqp=CAU"
+          class="product-image"
+        />
+        <h2 class="product-name"> Taj Mahal Tea </h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">220</span> /- 
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="220" data-product=" Taj Mahal Tea">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="220" data-product=" Taj Mahal Tea">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSFU9Us_mLI1olVTJQ6IWtaPlXQLbsqFBxB23rwA5Ew7D5KXJ8B0f2CC_57sYRGZACgI2M&usqp=CAU"
+          data-price="220"
+          data-product=" Taj Mahal Tea"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt=" Red Label Tea"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPLdUEgXToVz2w50CbBw3HZiOjDWjGEqKhKw&s"
+          class="product-image"
+        />
+        <h2 class="product-name"> Red Label Tea</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">250</span> /- 
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="250" data-product=" Red Label Tea">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="250" data-product=" Red Label Tea">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPLdUEgXToVz2w50CbBw3HZiOjDWjGEqKhKw&s"
+          data-price="250"
+          data-product=" Red Label Tea"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Girnar Masala Instant Tea Premix"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT_CTIKqrlrDN0Opt8ojqo2e-jRaN-V0EvViw&s"
+          class="product-image"
+        />
+        <h2 class="product-name">Girnar</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">50/-</span> 
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="Price varies" data-product="Girnar Masala Instant Tea Premix">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="Price varies" data-product="Girnar Masala Instant Tea Premix">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT_CTIKqrlrDN0Opt8ojqo2e-jRaN-V0EvViw&s"
+          data-price="Price varies"
+          data-product="Girnar Masala Instant Tea Premix"
+        >
+          Add Cart
+        </button>
+      </div>
+      </div>
+  </div>
+  
+  <div class="product-list" id="product-list-9">
+    <h4>Products in Canned Goods</h4>
+    <!-- List of products for Canned Goods -->
+    <div class="product-grid">
+
+      <div class="product-card">
+        <img
+          alt="Basmati Rice"
+          src="https://via.placeholder.com/150?text=Basmati+Rice"
+          class="product-image"
+        />
+        <h2 class="product-name">Basmati Rice</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">200</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="200" data-product="Basmati Rice">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="200" data-product="Basmati Rice">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Basmati+Rice"
+          data-price="200"
+          data-product="Basmati Rice"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Sona Masoori Rice"
+          src="https://via.placeholder.com/150?text=Sona+Masoori+Rice"
+          class="product-image"
+        />
+        <h2 class="product-name">Sona Masoori Rice</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">180</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="180" data-product="Sona Masoori Rice">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="180" data-product="Sona Masoori Rice">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Sona+Masoori+Rice"
+          data-price="180"
+          data-product="Sona Masoori Rice"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Jasmine Rice"
+          src="https://via.placeholder.com/150?text=Jasmine+Rice"
+          class="product-image"
+        />
+        <h2 class="product-name">Jasmine Rice</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">250</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="250" data-product="Jasmine Rice">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="250" data-product="Jasmine Rice">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Jasmine+Rice"
+          data-price="250"
+          data-product="Jasmine Rice"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Jeera Rice (Cumin Rice)"
+          src="https://via.placeholder.com/150?text=Jeera+Rice"
+          class="product-image"
+        />
+        <h2 class="product-name">Jeera Rice (Cumin Rice)</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">220</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="220" data-product="Jeera Rice">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="220" data-product="Jeera Rice">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Jeera+Rice"
+          data-price="220"
+          data-product="Jeera Rice"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Brown Rice"
+          src="https://via.placeholder.com/150?text=Brown+Rice"
+          class="product-image"
+        />
+        <h2 class="product-name">Brown Rice</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">280</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="280" data-product="Brown Rice">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="280" data-product="Brown Rice">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Brown+Rice"
+          data-price="280"
+          data-product="Brown Rice"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Black Rice (Forbidden Rice)"
+          src="https://via.placeholder.com/150?text=Black+Rice"
+          class="product-image"
+        />
+        <h2 class="product-name">Black Rice (Forbidden Rice)</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">350</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="350" data-product="Black Rice">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="350" data-product="Black Rice">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Black+Rice"
+          data-price="350"
+          data-product="Black Rice"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Biryani Rice"
+          src="https://via.placeholder.com/150?text=Biryani+Rice"
+          class="product-image"
+        />
+        <h2 class="product-name">Biryani Rice</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">250</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="250" data-product="Biryani Rice">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="250" data-product="Biryani Rice">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Biryani+Rice"
+          data-price="250"
+          data-product="Biryani Rice"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Ponni Rice"
+          src="https://via.placeholder.com/150?text=Ponni+Rice"
+          class="product-image"
+        />
+        <h2 class="product-name">Ponni Rice</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">180</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="180" data-product="Ponni Rice">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="180" data-product="Ponni Rice">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Ponni+Rice"
+          data-price="180"
+          data-product="Ponni Rice"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Parboiled Rice"
+          src="https://via.placeholder.com/150?text=Parboiled+Rice"
+          class="product-image"
+        />
+        <h2 class="product-name">Parboiled Rice</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">220</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="220" data-product="Parboiled Rice">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="220" data-product="Parboiled Rice">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Parboiled+Rice"
+          data-price="220"
+          data-product="Parboiled Rice"
+        >
+          Add Cart
+        </button>
+      </div>
+      <div class="product-card">
+        <img
+          alt="Wheat Atta (Whole Wheat Flour)"
+          src="https://via.placeholder.com/150?text=Wheat+Atta"
+          class="product-image"
+        />
+        <h2 class="product-name">Wheat Atta (Whole Wheat Flour)</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">40</span> /kg
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="40" data-product="Wheat Atta">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="40" data-product="Wheat Atta">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Wheat+Atta"
+          data-price="40"
+          data-product="Wheat Atta"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Maida (Refined Wheat Flour)"
+          src="https://via.placeholder.com/150?text=Maida"
+          class="product-image"
+        />
+        <h2 class="product-name">Maida (Refined Wheat Flour)</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">50</span> /kg
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="50" data-product="Maida">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="50" data-product="Maida">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Maida"
+          data-price="50"
+          data-product="Maida"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Ragi Atta (Finger Millet Flour)"
+          src="https://via.placeholder.com/150?text=Ragi+Atta"
+          class="product-image"
+        />
+        <h2 class="product-name">Ragi Atta (Finger Millet Flour)</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">60</span> /kg
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="60" data-product="Ragi Atta">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="60" data-product="Ragi Atta">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Ragi+Atta"
+          data-price="60"
+          data-product="Ragi Atta"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Besan (Gram Flour)"
+          src="https://via.placeholder.com/150?text=Besan"
+          class="product-image"
+        />
+        <h2 class="product-name">Besan (Gram Flour)</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">70</span> /kg
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="70" data-product="Besan">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="70" data-product="Besan">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Besan"
+          data-price="70"
+          data-product="Besan"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Jowar Atta (Sorghum Flour)"
+          src="https://via.placeholder.com/150?text=Jowar+Atta"
+          class="product-image"
+        />
+        <h2 class="product-name">Jowar Atta (Sorghum Flour)</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">80</span> /kg
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="80" data-product="Jowar Atta">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="80" data-product="Jowar Atta">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Jowar+Atta"
+          data-price="80"
+          data-product="Jowar Atta"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Bajra Atta (Pearl Millet Flour)"
+          src="https://via.placeholder.com/150?text=Bajra+Atta"
+          class="product-image"
+        />
+        <h2 class="product-name">Bajra Atta (Pearl Millet Flour)</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">90</span> /kg
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="90" data-product="Bajra Atta">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="90" data-product="Bajra Atta">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Bajra+Atta"
+          data-price="90"
+          data-product="Bajra Atta"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Rice Flour"
+          src="https://via.placeholder.com/150?text=Rice+Flour"
+          class="product-image"
+        />
+        <h2 class="product-name">Rice Flour</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">60</span> /kg
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="60" data-product="Rice Flour">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="60" data-product="Rice Flour">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Rice+Flour"
+          data-price="60"
+          data-product="Rice Flour"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Corn Flour"
+          src="https://via.placeholder.com/150?text=Corn+Flour"
+          class="product-image"
+        />
+        <h2 class="product-name">Corn Flour</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">55</span> /kg
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="55" data-product="Corn Flour">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="55" data-product="Corn Flour">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Corn+Flour"
+          data-price="55"
+          data-product="Corn Flour"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Oats Flour"
+          src="https://via.placeholder.com/150?text=Oats+Flour"
+          class="product-image"
+        />
+        <h2 class="product-name">Oats Flour</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">75</span> /kg
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="75" data-product="Oats Flour">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="75" data-product="Oats Flour">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Oats+Flour"
+          data-price="75"
+          data-product="Oats Flour"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Multigrain Flour"
+          src="https://via.placeholder.com/150?text=Multigrain+Flour"
+          class="product-image"
+        />
+        <h2 class="product-name">Multigrain Flour</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">100</span> /kg
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="100" data-product="Multigrain Flour">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="100" data-product="Multigrain Flour">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Multigrain+Flour"
+          data-price="100"
+          data-product="Multigrain Flour"
+        >
+          Add Cart
+        </button>
+      </div>
+      <div class="product-card">
+        <img
+          alt="Toor Dal (Pigeon Pea Lentils)"
+          src="https://via.placeholder.com/150?text=Toor+Dal"
+          class="product-image"
+        />
+        <h2 class="product-name">Toor Dal (Pigeon Pea Lentils)</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">120</span> /kg
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="120" data-product="Toor Dal">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="120" data-product="Toor Dal">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Toor+Dal"
+          data-price="120"
+          data-product="Toor Dal"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Masoor Dal (Red Lentils)"
+          src="https://via.placeholder.com/150?text=Masoor+Dal"
+          class="product-image"
+        />
+        <h2 class="product-name">Masoor Dal (Red Lentils)</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">100</span> /kg
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="100" data-product="Masoor Dal">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="100" data-product="Masoor Dal">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Masoor+Dal"
+          data-price="100"
+          data-product="Masoor Dal"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Chana Dal (Split Chickpeas)"
+          src="https://via.placeholder.com/150?text=Chana+Dal"
+          class="product-image"
+        />
+        <h2 class="product-name">Chana Dal (Split Chickpeas)</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">90</span> /kg
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="90" data-product="Chana Dal">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="90" data-product="Chana Dal">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Chana+Dal"
+          data-price="90"
+          data-product="Chana Dal"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Moong Dal (Yellow Moong Lentils)"
+          src="https://via.placeholder.com/150?text=Moong+Dal"
+          class="product-image"
+        />
+        <h2 class="product-name">Moong Dal (Yellow Moong Lentils)</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">110</span> /kg
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="110" data-product="Moong Dal">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="110" data-product="Moong Dal">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Moong+Dal"
+          data-price="110"
+          data-product="Moong Dal"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Urad Dal (Black Gram)"
+          src="https://via.placeholder.com/150?text=Urad+Dal"
+          class="product-image"
+        />
+        <h2 class="product-name">Urad Dal (Black Gram)</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">130</span> /kg
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="130" data-product="Urad Dal">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="130" data-product="Urad Dal">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Urad+Dal"
+          data-price="130"
+          data-product="Urad Dal"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Moth Dal"
+          src="https://via.placeholder.com/150?text=Moth+Dal"
+          class="product-image"
+        />
+        <h2 class="product-name">Moth Dal</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">95</span> /kg
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="95" data-product="Moth Dal">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="95" data-product="Moth Dal">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Moth+Dal"
+          data-price="95"
+          data-product="Moth Dal"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Lobia (Black-eyed Peas)"
+          src="https://via.placeholder.com/150?text=Lobia"
+          class="product-image"
+        />
+        <h2 class="product-name">Lobia (Black-eyed Peas)</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">85</span> /kg
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="85" data-product="Lobia">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="85" data-product="Lobia">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Lobia"
+          data-price="85"
+          data-product="Lobia"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Tamarind Dal"
+          src="https://via.placeholder.com/150?text=Tamarind+Dal"
+          class="product-image"
+        />
+        <h2 class="product-name">Tamarind Dal</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">150</span> /kg
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="150" data-product="Tamarind Dal">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="150" data-product="Tamarind Dal">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Tamarind+Dal"
+          data-price="150"
+          data-product="Tamarind Dal"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Rajma (Kidney Beans)"
+          src="https://via.placeholder.com/150?text=Rajma"
+          class="product-image"
+        />
+        <h2 class="product-name">Rajma (Kidney Beans)</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">140</span> /kg
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="140" data-product="Rajma">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="140" data-product="Rajma">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Rajma"
+          data-price="140"
+          data-product="Rajma"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Green Lentils (Sabut Moong Dal)"
+          src="https://via.placeholder.com/150?text=Green+Lentils"
+          class="product-image"
+        />
+        <h2 class="product-name">Green Lentils (Sabut Moong Dal)</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">125</span> /kg
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="125" data-product="Green Lentils">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="125" data-product="Green Lentils">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Green+Lentils"
+          data-price="125"
+          data-product="Green Lentils"
+        >
+          Add Cart
+        </button>
+      </div>
+            
+    </div>
+   
+    
+  </div>
+  
+  <div class="product-list" id="product-list-10">
+    <h4>Products in Dairy Alternatives</h4>
+    <!-- List of products for Dairy Alternatives -->
+    <div class="product-grid">
+      <div class="product-card">
+        <img
+          alt="Garam Masala"
+          src="https://via.placeholder.com/150?text=Garam+Masala"
+          class="product-image"
+        />
+        <h2 class="product-name">Garam Masala</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">200</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="200" data-product="Garam Masala">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="200" data-product="Garam Masala">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Garam+Masala"
+          data-price="200"
+          data-product="Garam Masala"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Chaat Masala"
+          src="https://via.placeholder.com/150?text=Chaat+Masala"
+          class="product-image"
+        />
+        <h2 class="product-name">Chaat Masala</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">150</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="150" data-product="Chaat Masala">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="150" data-product="Chaat Masala">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Chaat+Masala"
+          data-price="150"
+          data-product="Chaat Masala"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Curry Powder"
+          src="https://via.placeholder.com/150?text=Curry+Powder"
+          class="product-image"
+        />
+        <h2 class="product-name">Curry Powder</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">180</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="180" data-product="Curry Powder">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="180" data-product="Curry Powder">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Curry+Powder"
+          data-price="180"
+          data-product="Curry Powder"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Tandoori Masala"
+          src="https://via.placeholder.com/150?text=Tandoori+Masala"
+          class="product-image"
+        />
+        <h2 class="product-name">Tandoori Masala</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">250</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="250" data-product="Tandoori Masala">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="250" data-product="Tandoori Masala">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Tandoori+Masala"
+          data-price="250"
+          data-product="Tandoori Masala"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Biryani Masala"
+          src="https://via.placeholder.com/150?text=Biryani+Masala"
+          class="product-image"
+        />
+        <h2 class="product-name">Biryani Masala</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">300</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="300" data-product="Biryani Masala">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="300" data-product="Biryani Masala">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Biryani+Masala"
+          data-price="300"
+          data-product="Biryani Masala"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Cumin Powder"
+          src="https://via.placeholder.com/150?text=Cumin+Powder"
+          class="product-image"
+        />
+        <h2 class="product-name">Cumin Powder</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">100</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="100" data-product="Cumin Powder">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="100" data-product="Cumin Powder">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Cumin+Powder"
+          data-price="100"
+          data-product="Cumin Powder"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Coriander Powder"
+          src="https://via.placeholder.com/150?text=Coriander+Powder"
+          class="product-image"
+        />
+        <h2 class="product-name">Coriander Powder</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">120</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="120" data-product="Coriander Powder">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="120" data-product="Coriander Powder">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Coriander+Powder"
+          data-price="120"
+          data-product="Coriander Powder"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Red Chili Powder"
+          src="https://via.placeholder.com/150?text=Red+Chili+Powder"
+          class="product-image"
+        />
+        <h2 class="product-name">Red Chili Powder</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">180</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="180" data-product="Red Chili Powder">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="180" data-product="Red Chili Powder">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Red+Chili+Powder"
+          data-price="180"
+          data-product="Red Chili Powder"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Turmeric Powder"
+          src="https://via.placeholder.com/150?text=Turmeric+Powder"
+          class="product-image"
+        />
+        <h2 class="product-name">Turmeric Powder</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">130</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="130" data-product="Turmeric Powder">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="130" data-product="Turmeric Powder">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Turmeric+Powder"
+          data-price="130"
+          data-product="Turmeric Powder"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Black Pepper"
+          src="https://via.placeholder.com/150?text=Black+Pepper"
+          class="product-image"
+        />
+        <h2 class="product-name">Black Pepper</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">220</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="220" data-product="Black Pepper">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="220" data-product="Black Pepper">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Black+Pepper"
+          data-price="220"
+          data-product="Black Pepper"
+        >
+          Add Cart
+        </button>
+      </div>
+      <div class="product-card">
+        <img
+          alt="Olive Oil (Extra Virgin)"
+          src="https://via.placeholder.com/150?text=Olive+Oil+(Extra+Virgin)"
+          class="product-image"
+        />
+        <h2 class="product-name">Olive Oil</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">500</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="500" data-product="Olive Oil (Extra Virgin)">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="500" data-product="Olive Oil (Extra Virgin)">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Olive+Oil+(Extra+Virgin)"
+          data-price="500"
+          data-product="Olive Oil (Extra Virgin)"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Mustard Oil"
+          src="https://via.placeholder.com/150?text=Mustard+Oil"
+          class="product-image"
+        />
+        <h2 class="product-name">Mustard Oil</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">250</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="250" data-product="Mustard Oil">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="250" data-product="Mustard Oil">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Mustard+Oil"
+          data-price="250"
+          data-product="Mustard Oil"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Coconut Oil"
+          src="https://via.placeholder.com/150?text=Coconut+Oil"
+          class="product-image"
+        />
+        <h2 class="product-name">Coconut Oil</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">300</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="300" data-product="Coconut Oil">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="300" data-product="Coconut Oil">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Coconut+Oil"
+          data-price="300"
+          data-product="Coconut Oil"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Sunflower Oil"
+          src="https://via.placeholder.com/150?text=Sunflower+Oil"
+          class="product-image"
+        />
+        <h2 class="product-name">Sunflower Oil</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">200</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="200" data-product="Sunflower Oil">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="200" data-product="Sunflower Oil">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Sunflower+Oil"
+          data-price="200"
+          data-product="Sunflower Oil"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Sesame Oil"
+          src="https://via.placeholder.com/150?text=Sesame+Oil"
+          class="product-image"
+        />
+        <h2 class="product-name">Sesame Oil</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">350</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="350" data-product="Sesame Oil">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="350" data-product="Sesame Oil">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Sesame+Oil"
+          data-price="350"
+          data-product="Sesame Oil"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Groundnut (Peanut) Oil"
+          src="https://via.placeholder.com/150?text=Groundnut+Oil"
+          class="product-image"
+        />
+        <h2 class="product-name">Groundnut (Peanut)</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">270</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="270" data-product="Groundnut (Peanut) Oil">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="270" data-product="Groundnut (Peanut) Oil">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Groundnut+Oil"
+          data-price="270"
+          data-product="Groundnut (Peanut) Oil"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Vegetable Oil"
+          src="https://via.placeholder.com/150?text=Vegetable+Oil"
+          class="product-image"
+        />
+        <h2 class="product-name">Vegetable Oil</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">180</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="180" data-product="Vegetable Oil">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="180" data-product="Vegetable Oil">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Vegetable+Oil"
+          data-price="180"
+          data-product="Vegetable Oil"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Ghee (Clarified Butter)"
+          src="https://via.placeholder.com/150?text=Ghee+(Clarified+Butter)"
+          class="product-image"
+        />
+        <h2 class="product-name">Ghee</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">400</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="400" data-product="Ghee (Clarified Butter)">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="400" data-product="Ghee (Clarified Butter)">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Ghee+(Clarified+Butter)"
+          data-price="400"
+          data-product="Ghee (Clarified Butter)"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Flaxseed Oil"
+          src="https://via.placeholder.com/150?text=Flaxseed+Oil"
+          class="product-image"
+        />
+        <h2 class="product-name">Flaxseed Oil</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">320</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="320" data-product="Flaxseed Oil">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="320" data-product="Flaxseed Oil">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Flaxseed+Oil"
+          data-price="320"
+          data-product="Flaxseed Oil"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Avocado Oil"
+          src="https://via.placeholder.com/150?text=Avocado+Oil"
+          class="product-image"
+        />
+        <h2 class="product-name">Avocado Oil</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">600</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="600" data-product="Avocado Oil">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="600" data-product="Avocado Oil">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Avocado+Oil"
+          data-price="600"
+          data-product="Avocado Oil"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+    </div>
+
+  </div>
+  
+  <div class="product-list" id="product-list-11">
+    <h1 class="h2p">Sauces & Spreads</h1>
+    <!-- List of products for Frozen Foods -->
+    <div class="product-grid">
+      <div class="product-card">
+        <img
+          alt="Marinara Sauce"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8N686DHdeX4sY5j4VV98sijkNjuCi6OLL5iMdaLus04nRI_bpEetVgjTVAtjMCLskkAY&usqp=CAU"
+          class="product-image"
+        />
+        <h2 class="product-name">Marinara Sauce</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">150</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="150" data-product="Marinara Sauce">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="150" data-product="Marinara Sauce">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8N686DHdeX4sY5j4VV98sijkNjuCi6OLL5iMdaLus04nRI_bpEetVgjTVAtjMCLskkAY&usqp=CAU"
+          data-price="150"
+          data-product="Marinara Sauce"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Alfredo Sauce"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxgglkJQKmI9xpJ4wh91Ejg-YxhB50EHrpCtZEGigS6yyDBSqtemHk9MgU4XmC7lJ3seo&usqp=CAU"
+          class="product-image"
+        />
+        <h2 class="product-name">Alfredo Sauce</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">180</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="180" data-product="Alfredo Sauce">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="180" data-product="Alfredo Sauce">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxgglkJQKmI9xpJ4wh91Ejg-YxhB50EHrpCtZEGigS6yyDBSqtemHk9MgU4XmC7lJ3seo&usqp=CAU"
+          data-price="180"
+          data-product="Alfredo Sauce"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Soy Sauce"
+          src="https://via.placeholder.com/150?text=Soy+Sauce"
+          class="product-image"
+        />
+        <h2 class="product-name">Soy Sauce</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">100</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="100" data-product="Soy Sauce">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="100" data-product="Soy Sauce">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Soy+Sauce"
+          data-price="100"
+          data-product="Soy Sauce"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Barbecue Sauce"
+          src="https://via.placeholder.com/150?text=Barbecue+Sauce"
+          class="product-image"
+        />
+        <h2 class="product-name">Barbecue Sauce</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">200</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="200" data-product="Barbecue Sauce">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="200" data-product="Barbecue Sauce">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Barbecue+Sauce"
+          data-price="200"
+          data-product="Barbecue Sauce"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Hot Sauce"
+          src="https://via.placeholder.com/150?text=Hot+Sauce"
+          class="product-image"
+        />
+        <h2 class="product-name">Hot Sauce</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">130</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="130" data-product="Hot Sauce">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="130" data-product="Hot Sauce">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Hot+Sauce"
+          data-price="130"
+          data-product="Hot Sauce"
+        >
+          Add Cart
+        </button>
+      </div>
+      <div class="product-card">
+        <img
+          alt="Teriyaki Sauce"
+          src="https://via.placeholder.com/150?text=Teriyaki+Sauce"
+          class="product-image"
+        />
+        <h2 class="product-name">Teriyaki Sauce</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">160</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="160" data-product="Teriyaki Sauce">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="160" data-product="Teriyaki Sauce">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Teriyaki+Sauce"
+          data-price="160"
+          data-product="Teriyaki Sauce"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Pesto Sauce"
+          src="https://via.placeholder.com/150?text=Pesto+Sauce"
+          class="product-image"
+        />
+        <h2 class="product-name">Pesto Sauce</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">220</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="220" data-product="Pesto Sauce">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="220" data-product="Pesto Sauce">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Pesto+Sauce"
+          data-price="220"
+          data-product="Pesto Sauce"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Hollandaise Sauce"
+          src="https://via.placeholder.com/150?text=Hollandaise+Sauce"
+          class="product-image"
+        />
+        <h2 class="product-name">Hollandaise Sauce</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">250</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="250" data-product="Hollandaise Sauce">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="250" data-product="Hollandaise Sauce">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Hollandaise+Sauce"
+          data-price="250"
+          data-product="Hollandaise Sauce"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Tartar Sauce"
+          src="https://via.placeholder.com/150?text=Tartar+Sauce"
+          class="product-image"
+        />
+        <h2 class="product-name">Tartar Sauce</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">180</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="180" data-product="Tartar Sauce">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="180" data-product="Tartar Sauce">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Tartar+Sauce"
+          data-price="180"
+          data-product="Tartar Sauce"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Sriracha Sauce"
+          src="https://via.placeholder.com/150?text=Sriracha+Sauce"
+          class="product-image"
+        />
+        <h2 class="product-name">Sriracha Sauce</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">200</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="200" data-product="Sriracha Sauce">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="200" data-product="Sriracha Sauce">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Sriracha+Sauce"
+          data-price="200"
+          data-product="Sriracha Sauce"
+        >
+          Add Cart
+        </button>
+      </div>
+      <div class="product-card">
+        <img
+          alt="Peanut Butter"
+          src="https://via.placeholder.com/150?text=Peanut+Butter"
+          class="product-image"
+        />
+        <h2 class="product-name">Peanut Butter</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">250</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="250" data-product="Peanut Butter">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="250" data-product="Peanut Butter">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Peanut+Butter"
+          data-price="250"
+          data-product="Peanut Butter"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Nutella (Chocolate Hazelnut Spread)"
+          src="https://via.placeholder.com/150?text=Nutella"
+          class="product-image"
+        />
+        <h2 class="product-name">Nutella</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">350</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="350" data-product="Nutella">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="350" data-product="Nutella">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Nutella"
+          data-price="350"
+          data-product="Nutella"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Jam"
+          src="https://via.placeholder.com/150?text=Jam"
+          class="product-image"
+        />
+        <h2 class="product-name">Jam</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">120</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="120" data-product="Jam">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="120" data-product="Jam">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Jam"
+          data-price="120"
+          data-product="Jam"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Honey"
+          src="https://via.placeholder.com/150?text=Honey"
+          class="product-image"
+        />
+        <h2 class="product-name">Honey</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">200</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="200" data-product="Honey">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="200" data-product="Honey">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Honey"
+          data-price="200"
+          data-product="Honey"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Cream Cheese"
+          src="https://via.placeholder.com/150?text=Cream+Cheese"
+          class="product-image"
+        />
+        <h2 class="product-name">Cream Cheese</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">300</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="300" data-product="Cream Cheese">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="300" data-product="Cream Cheese">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Cream+Cheese"
+          data-price="300"
+          data-product="Cream Cheese"
+        >
+          Add Cart
+        </button>
+      </div>
+      <div class="product-card">
+        <img
+          alt="Chocolate Hazelnut Spread"
+          src="https://via.placeholder.com/150?text=Chocolate+Hazelnut+Spread"
+          class="product-image"
+        />
+        <h2 class="product-name">Chocolate Hazelnut</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">350</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="350" data-product="Chocolate Hazelnut Spread">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="350" data-product="Chocolate Hazelnut Spread">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Chocolate+Hazelnut+Spread"
+          data-price="350"
+          data-product="Chocolate Hazelnut Spread"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Hummus"
+          src="https://via.placeholder.com/150?text=Hummus"
+          class="product-image"
+        />
+        <h2 class="product-name">Hummus</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">150</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="150" data-product="Hummus">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="150" data-product="Hummus">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Hummus"
+          data-price="150"
+          data-product="Hummus"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Guacamole"
+          src="https://via.placeholder.com/150?text=Guacamole"
+          class="product-image"
+        />
+        <h2 class="product-name">Guacamole</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">250</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="250" data-product="Guacamole">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="250" data-product="Guacamole">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Guacamole"
+          data-price="250"
+          data-product="Guacamole"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Tahini"
+          src="https://via.placeholder.com/150?text=Tahini"
+          class="product-image"
+        />
+        <h2 class="product-name">Tahini</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">200</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="200" data-product="Tahini">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="200" data-product="Tahini">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Tahini"
+          data-price="200"
+          data-product="Tahini"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Marmite"
+          src="https://via.placeholder.com/150?text=Marmite"
+          class="product-image"
+        />
+        <h2 class="product-name">Marmite</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">300</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="300" data-product="Marmite">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="300" data-product="Marmite">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Marmite"
+          data-price="300"
+          data-product="Marmite"
+        >
+          Add Cart
+        </button>
+      </div>
+      
+      <div class="product-card">
+        <img
+          alt="Butter"
+          src="https://via.placeholder.com/150?text=Butter"
+          class="product-image"
+        />
+        <h2 class="product-name">Butter</h2>
+        <p class="product-price">
+          Price: Rs. <span class="price">180</span> /-
+        </p>
+        <div class="quantity-control">
+          <button class="decrease" data-price="180" data-product="Butter">-</button>
+          <span class="quantity">1</span>
+          <button class="increase" data-price="180" data-product="Butter">+</button>
+        </div>
+        <button
+          class="add-to-cart"
+          data-image="https://via.placeholder.com/150?text=Butter"
+          data-price="180"
+          data-product="Butter"
+        >
+          Add Cart
+        </button>
+      </div>
+            
+      <!-- Repeat the same structure for the rest of the sauces -->
+</div>      
+  </div>
+  
+  <div class="product-list" id="product-list-12">
+    <h1 class="h2p">Chicken, Meat & Fish</h1>
+    <!-- List of products for Health & Wellness -->
+    <div class="product-grid">
+      <div class="product-card">
+      <img
+        alt="Chicken"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQdB1aIyMKNUeBiIZBDgU-8YMFSDcWKF9uZvg&s"
+        class="product-image"
+      />
+      <h2 class="product-name">Chicken</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">180</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="200" data-product="Chicken">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="200" data-product="Chicken">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQdB1aIyMKNUeBiIZBDgU-8YMFSDcWKF9uZvg&s"
+        data-price="200"
+        data-product="Chicken"
+      >
+        Add Cart
+      </button>
+    </div>
+    <div class="product-card">
+      <img
+        alt="Mutton"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWtVR6HmCrNxdewa5u6iEnSaGBHxjz5XD3Iw&s"
+        class="product-image"
+      />
+      <h2 class="product-name">Mutton</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">700</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="500" data-product="Mutton">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="500" data-product="Mutton">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWtVR6HmCrNxdewa5u6iEnSaGBHxjz5XD3Iw&s"
+        data-price="500"
+        data-product="Mutton"
+      >
+        Add Cart
+      </button>
+    </div>
+    <div class="product-card">
+      <img
+        alt="Fish"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTd4NO4adCAbwTvWz-U7Heua3UM4IRPf8mJWQ&s"
+        class="product-image"
+      />
+      <h2 class="product-name">Fish</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">150</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="300" data-product="Fish">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="300" data-product="Fish">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTd4NO4adCAbwTvWz-U7Heua3UM4IRPf8mJWQ&s"
+        data-price="300"
+        data-product="Fish"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    <div class="product-card">
+      <img
+        alt="Prawns"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSz25sipoOgx8yiRt8TuPzNHXZAT8_Psz-r9w&s"
+        class="product-image"
+      />
+      <h2 class="product-name">Prawns</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">200</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="400" data-product="Prawns">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="400" data-product="Prawns">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSz25sipoOgx8yiRt8TuPzNHXZAT8_Psz-r9w&s"
+        data-price="400"
+        data-product="Prawns"
+      >
+        Add Cart
+      </button>
+    </div>
+    
+    
+    <div class="product-card">
+      <img
+        alt="Eggs"
+        src="https://t3.ftcdn.net/jpg/01/74/18/10/360_F_174181095_mrXi3QVGzILvTBDnEI7gxJwwEvlPbUhE.jpg"
+        class="product-image"
+      />
+      <h2 class="product-name">crabs</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">300</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="120" data-product="crabs">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="120" data-product="crabs">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://t3.ftcdn.net/jpg/01/74/18/10/360_F_174181095_mrXi3QVGzILvTBDnEI7gxJwwEvlPbUhE.jpg"
+        data-price="120"
+        data-product="crabs"
+      >
+        Add Cart
+      </button>
+    </div>
+    <div class="product-card">
+      <img
+        alt="quail bird"
+        src="https://myonlinevipani.com/wp-content/uploads/2020/09/Quail-Meat-Each-Kaada.jpg"
+        class="product-image"
+      />
+      <h2 class="product-name">quail bird (Meat)</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">100</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="120" data-product="quail bird">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="120" data-product="quail bird">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://myonlinevipani.com/wp-content/uploads/2020/09/Quail-Meat-Each-Kaada.jpg"
+        data-price="120"
+        data-product="quail bird"
+      >
+        Add Cart
+      </button>
+    </div>
+    <div class="product-card">
+      <img
+        alt="squid"
+        src="https://img1.exportersindia.com/product_images/bc-full/2020/1/6902190/1-1579160621_p_5244536_1052469.jpeg"
+        class="product-image"
+      />
+      <h2 class="product-name">squid</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">300</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="120" data-product="squid">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="120" data-product="squid">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://img1.exportersindia.com/product_images/bc-full/2020/1/6902190/1-1579160621_p_5244536_1052469.jpeg"
+        data-price="120"
+        data-product="squid"
+      >
+        Add Cart
+      </button>
+    </div>
+    <div class="product-card">
+      <img
+        alt="Pig"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTl6WbQOSAXUC6mwi8LB9_DqYR3P-sZsYIiPw&s"
+        class="product-image"
+      />
+      <h2 class="product-name">Pig (Meat)</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">150</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="120" data-product="Pig">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="120" data-product="Pig">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTl6WbQOSAXUC6mwi8LB9_DqYR3P-sZsYIiPw&s"
+        data-price="120"
+        data-product="Pig"
+      >
+        Add Cart
+      </button>
+    </div>
+    <div class="product-card">
+      <img
+        alt="Dry Fish"
+        src="https://st.depositphotos.com/1820901/1425/i/450/depositphotos_14251391-stock-photo-dried-fish.jpg"
+        class="product-image"
+      />
+      <h2 class="product-name">Dry Fish</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">100</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="120" data-product="Dry Fish">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="120" data-product="Dry Fish">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://st.depositphotos.com/1820901/1425/i/450/depositphotos_14251391-stock-photo-dried-fish.jpg"
+        data-price="120"
+        data-product="Dry Fish"
+      >
+        Add Cart
+      </button>
+    </div>
+    <div class="product-card">
+      <img
+        alt="Dry Prawns"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1yWUV3zJJ6UvOHp9gmAN6gYdh3kDgbbDsIA&s"
+        class="product-image"
+      />
+      <h2 class="product-name">Dry Prawns</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">100</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="120" data-product="Dry Prawns">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="120" data-product="Dry Prawns">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1yWUV3zJJ6UvOHp9gmAN6gYdh3kDgbbDsIA&s"
+        data-price="120"
+        data-product="Dry Prawns"
+      >
+        Add Cart
+      </button>
+    </div>
+    <div class="product-card">
+      <img
+        alt="Tuna Fish"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHqiMiAd8xPRinuyf_M2RuFqV9bR44O3WW5g&s"
+        class="product-image"
+      />
+      <h2 class="product-name">Tuna Fish</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">100</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="120" data-product="Tuna Fish">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="120" data-product="Tuna Fish">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHqiMiAd8xPRinuyf_M2RuFqV9bR44O3WW5g&s"
+        data-price="120"
+        data-product="Tuna Fish"
+      >
+        Add Cart
+      </button>
+    </div>
+    <div class="product-card">
+      <img
+        alt="Paplet Fish"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTuPHCejjEKBxkAkk02Gjq1ZtO0BilcvQj8SeJyOK8sMSwHnF2L_L4X-yfaWlCuoOsNrUo&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name">Paplet Fish</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">100</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="120" data-product="Paplet Fish">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="120" data-product="Paplet Fish">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTuPHCejjEKBxkAkk02Gjq1ZtO0BilcvQj8SeJyOK8sMSwHnF2L_L4X-yfaWlCuoOsNrUo&usqp=CAU"
+        data-price="120"
+        data-product="Paplet Fish"
+      >
+        Add Cart
+      </button>
+    </div>
+    <div class="product-card">
+      <img
+        alt="Pulasa Fish"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-3ckCrnKCmNQmBIdLXdY7YGuHKHyq37p2hA&s"
+        class="product-image"
+      />
+      <h2 class="product-name">Pulasa Fish</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">1500</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="120" data-product="Pulasa Fish">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="120" data-product="Pulasa Fish">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-3ckCrnKCmNQmBIdLXdY7YGuHKHyq37p2hA&s"
+        data-price="120"
+        data-product="Pulasa Fish"
+      >
+        Add Cart
+      </button>
+    </div>
+    <div class="product-card">
+      <img
+        alt="natu kodi Meat"
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ4CiHhvYYjDv6cG7R5LjI_DLjZ9I1wgXrmXIVEw5L-pqQe0CvIewtUfB8gcouVMOgsWmU&usqp=CAU"
+        class="product-image"
+      />
+      <h2 class="product-name">natukodi Meat</h2>
+      <p class="product-price">
+        Price: Rs. <span class="price">200</span> /-
+      </p>
+      <div class="quantity-control">
+        <button class="decrease" data-price="120" data-product="natu kodi Meat">-</button>
+        <span class="quantity">1</span>
+        <button class="increase" data-price="120" data-product="natu kodi Meat">+</button>
+      </div>
+      <button
+        class="add-to-cart"
+        data-image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ4CiHhvYYjDv6cG7R5LjI_DLjZ9I1wgXrmXIVEw5L-pqQe0CvIewtUfB8gcouVMOgsWmU&usqp=CAU"
+        data-price="120"
+        data-product="natu kodi Meat"
+      >
+        Add Cart
+      </button>
+    </div>
+  </div>
+  </div>
+  <div class="product-list" id="product-list-13">
+    <h4>Products in Household Supplies</h4>
+    <!-- List of products for Household Supplies -->
+  </div>
+  
+  <div class="product-list" id="product-list-14">
+    <h4>Products in Baby & Kids</h4>
+    <!-- List of products for Baby & Kids -->
+  </div>
+  
+<style>
+    .product-list {
+  display: none; /* Initially hide all product lists */
+}
+
+.category-card {
+  cursor: pointer;
+}
+
+h3 {
+  margin: 0;
+}
+
+</style>  
+<script>
+// Function to handle category card clicks
+const categoryCards = document.querySelectorAll('.category-card');
+categoryCards.forEach(card => {
+  card.addEventListener('click', () => {
+    // Hide all product lists first
+    const allProductLists = document.querySelectorAll('.product-list');
+    allProductLists.forEach(list => {
+      list.style.display = 'none';
+    });
+
+    
+    const categoryId = card.id.replace('category-', '');
+    const productList = document.getElementById(`product-list-${categoryId}`);
+    productList.style.display = 'block'; 
+  });
+});
+</script>
+<br><br><br><br>
+<footer>
+  <div class="footer-content">
+      <div class="footer-section">
+        <h4>About Us</h4>
+          <h4>Speed Shop</h4>
+          <p>Speed Delivery within 8 mins</p>
+      </div>
+      <div class="footer-section">
+          <h4>Quick Links</h4>
+          <a href="#fruits">Fruits</a>
+          <a href="#vegetables">Vegetables</a>
+          <a href="#bakery">Bakery</a>
+          <a href="#meat">Meat</a>
+          <a href="#seafood">Seafood</a>
+          <a href="#dairy">Dairy</a>
+          <a href="#snacks">Snacks</a>
+          <a href="#more">more........</a>
+      </div>
+      <div class="footer-section">
+          <h4>Welcome to Speed Shop</h4>
+          <p>Speed Delivery within 8 mins</p>
+          <p>Home furnishing items including furniture, decor, and other products</p>
+          <p>Fresh and quality groceries at your doorstep</p>
+      </div>
+      <div class="footer-section">
+          <h4>Follow Us</h4>
+          <div class="social-links">
+              <a href="#"><i class="fab fa-facebook"></i></a>
+              <a href="#"><i class="fab fa-twitter"></i></a>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+              <a href="#"><i class="fab fa-youtube"></i></a>
+          </div>
+      </div>
+  </div>
+  <div class="footer-bottom">
+      <p>&copy; 2025 Speed Shop. All rights reserved.</p>
+  </div>
+</footer>
+
+<style>
+  /* Global Footer Styles */
+footer {
+  background-color: #2c3e50;
+  color: #ecf0f1;
+  padding: 40px 0;
+  font-family: 'Arial', sans-serif;
+}
+
+/* Footer Content */
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Footer Section */
+.footer-section {
+  flex: 1;
+  padding: 20px;
+}
+
+/* Footer Headers */
+.footer-section h4 {
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: #ecf0f1;
+}
+
+/* Footer Links */
+.footer-section a {
+  display: block;
+  color: #bdc3c7;
+  text-decoration: none;
+  margin: 8px 0;
+  font-size: 14px;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.footer-section a:hover {
+  color: #3498db;
+  transform: translateX(5px);
+}
+
+/* Footer Contact */
+.footer-section p {
+  font-size: 14px;
+  color: #bdc3c7;
+  margin: 5px 0;
+}
+
+/* Social Links */
+.social-links {
+  display: flex;
+  gap: 15px;
+}
+
+.social-links a {
+  color: #ecf0f1;
+  font-size: 20px;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.social-links a:hover {
+  color: #3498db;
+  transform: scale(1.2);
+}
+
+/* Footer Bottom */
+.footer-bottom {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #bdc3c7;
+}
+
+/* Footer Animation */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Apply Fade-In Animation */
+.footer-content {
+  animation: fadeInUp 1s ease-in-out;
+}
+
+.footer-bottom {
+  animation: fadeInUp 1s ease-in-out 0.5s;
+}
+
+</style>
